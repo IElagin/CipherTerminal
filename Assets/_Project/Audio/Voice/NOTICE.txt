@@ -1,0 +1,14 @@
+TerminalAccessGranted.wav
+
+Russian phrase: «Доступ разрешён. Добро пожаловать в терминал.»
+Locally synthesized using Piper ru_RU-denis-medium, then filtered and combined
+with the project's original terminal success signal.
+
+Voice model repository: https://huggingface.co/rhasspy/piper-voices (MIT).
+Denis model card identifies the source dataset as CC0:
+https://huggingface.co/rhasspy/piper-voices/blob/main/ru/ru_RU/denis/medium/MODEL_CARD
+Dataset: https://github.com/OHF-Voice/voice-datasets
+
+Piper (GPL-3.0-or-later) was used only as a local generation tool.
+Neither the synthesis engine nor the model is included in this project.
+https://github.com/OHF-Voice/piper1-gpl

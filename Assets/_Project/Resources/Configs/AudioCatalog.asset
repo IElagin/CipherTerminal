@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 317d1d776227142639c01f02da03f744, type: 3}
+  m_Name: AudioCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Utilities.Audio.AudioCatalog
+  _ambientClip: {fileID: 8300000, guid: f086d099395244cfd82f4318ed7b6661, type: 3}
+  _keyClip1: {fileID: 8300000, guid: 42c53537b84e6494da2f51c2f4399b23, type: 3}
+  _keyClip2: {fileID: 8300000, guid: 2717692ce62414339aa1f30561df7042, type: 3}
+  _keyClip3: {fileID: 8300000, guid: 87891ae6cd223452fb8e1659c3f1472c, type: 3}
+  _errorClip: {fileID: 8300000, guid: 30ebd33a781eb4825835afdf81705b10, type: 3}
+  _successClip: {fileID: 8300000, guid: c1a40ff11d2a94806a72a2c21de0f738, type: 3}
+  _ambientVolume: 0.22
+  _keyVolume: 0.75
+  _errorVolume: 0.71
+  _successVolume: 0.71
