@@ -1,6 +1,7 @@
 using VContainer;
 using Assets._Project.Develop.Runtime.Gameplay.Sequence;
 using Assets._Project.Develop.Runtime.Gameplay.Configs;
+using Assets._Project.Develop.Runtime.Meta.Progress;
 using Assets._Project.Develop.Runtime.Utilities.ConfigsManagement;
 using Assets._Project.Develop.Runtime.Utilities.SceneManagement;
 
@@ -20,6 +21,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
             }, Lifetime.Scoped);
 
             builder.Register(c => new GameplayLoop(c.Resolve<SequenceSession>(), inputArgs), Lifetime.Scoped);
+            builder.Register(c => new GameplayProgressTracker(c.Resolve<GameplayLoop>(),
+                c.Resolve<PlayerProgressService>()), Lifetime.Scoped);
             builder.Register<SceneNavigator>(Lifetime.Scoped);
         }
     }

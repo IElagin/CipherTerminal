@@ -19,6 +19,7 @@ namespace Assets._Project.Develop.Editor
         private static readonly Queue<Action> Steps = new Queue<Action>();
         private static readonly List<string> Results = new List<string>();
         private static string _received;
+        private static int _escapeCount;
         private static double _next;
         private static bool _background;
         private static InputSettings _originalSettings;
@@ -38,6 +39,7 @@ namespace Assets._Project.Develop.Editor
             Results.Clear();
             Steps.Clear();
             _received = "";
+            _escapeCount = 0;
 
             _background = Application.runInBackground;
             Application.runInBackground = true;
@@ -58,6 +60,7 @@ namespace Assets._Project.Develop.Editor
             _probe = new GameObject("KeyboardRegressionProbe");
             _input = _probe.AddComponent<TerminalKeyboard>();
             _input.Character += c => _received += c;
+            _input.Escape += () => _escapeCount++;
             _input.Activate();
 
             Steps.Enqueue(() => Press(null, Key.LeftShift));
@@ -98,6 +101,14 @@ namespace Assets._Project.Develop.Editor
             Steps.Enqueue(() => Press(null));
             Steps.Enqueue(() => Press('A', Key.A));
             Steps.Enqueue(() => Require(_received == "A", "fresh key accepted after release"));
+            Steps.Enqueue(() => Press(null));
+            Steps.Enqueue(() => Press('4', Key.Escape, Key.Digit4));
+            Steps.Enqueue(() => Require(_escapeCount == 1 && _received == "A", "Escape edge is separate from character input"));
+            Steps.Enqueue(() => Press('4', Key.Escape, Key.Digit4));
+            Steps.Enqueue(() => Require(_escapeCount == 1 && _received == "A", "held Escape and queued text are ignored"));
+            Steps.Enqueue(() => Press(null));
+            Steps.Enqueue(() => Press(null, Key.Escape));
+            Steps.Enqueue(() => Require(_escapeCount == 2 && _received == "A", "fresh Escape is accepted after release"));
             _next = EditorApplication.timeSinceStartup + .35;
             EditorApplication.update += Tick;
         }

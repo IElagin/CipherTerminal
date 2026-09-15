@@ -15,6 +15,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.Input
         private int _startFrame;
 
         public event Action<char> Character;
+        public event Action Escape;
 
         public void Activate()
         {
@@ -81,6 +82,13 @@ namespace Assets._Project.Develop.Runtime.Utilities.Input
                 if (Time.frameCount > _startFrame && !HasCharacterKey(false))
                     _armed = true;
 
+                return;
+            }
+
+            if (_keyboard.escapeKey.wasPressedThisFrame)
+            {
+                _characters.Clear();
+                Escape?.Invoke();
                 return;
             }
 

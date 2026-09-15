@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using VContainer;
 using UnityEngine;
 using Assets._Project.Develop.Runtime.Infrastructure;
+using Assets._Project.Develop.Runtime.Meta.Progress;
 using Assets._Project.Develop.Runtime.Meta.Presentation;
 using Assets._Project.Develop.Runtime.Utilities.Audio;
 using Assets._Project.Develop.Runtime.Utilities.SceneManagement;
@@ -27,7 +28,8 @@ namespace Assets._Project.Develop.Runtime.Meta.Infrastructure
             _container = container;
             SceneNavigator navigator = _container.Resolve<SceneNavigator>();
             MainMenuController controller = _container.Resolve<MainMenuController>();
-            controller.Configure(navigator, _container.Resolve<IAudioService>());
+            controller.Configure(navigator, _container.Resolve<IAudioService>(),
+                _container.Resolve<PlayerProgressService>());
             return UniTask.CompletedTask;
         }
 

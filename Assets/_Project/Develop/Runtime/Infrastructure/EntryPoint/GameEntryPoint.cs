@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using VContainer;
 using Assets._Project.Develop.Runtime.Utilities.Audio;
+using Assets._Project.Develop.Runtime.Meta.Progress;
 using Assets._Project.Develop.Runtime.Utilities.ConfigsManagement;
 using Assets._Project.Develop.Runtime.Utilities.LoadingScreen;
 using Assets._Project.Develop.Runtime.Utilities.SceneManagement;
@@ -65,6 +66,10 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
                 await configs.LoadAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 _audioService.Initialize(configs.GetConfig<AudioCatalog>());
+                cancellationToken.ThrowIfCancellationRequested();
+
+                PlayerProgressService progress = _projectContainer.Resolve<PlayerProgressService>();
+                await progress.InitializeAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 Debug.Log("Project services initialized");
 

@@ -17,6 +17,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.ConfigsManagement
         {
             _resources = resources;
             _configsResourcesPaths.Add(typeof(Assets._Project.Develop.Runtime.Gameplay.Configs.SequenceConfig), "Configs/SequenceConfig");
+            _configsResourcesPaths.Add(typeof(Assets._Project.Develop.Runtime.Meta.Configs.EconomyConfig), "Configs/EconomyConfig");
             _configsResourcesPaths.Add(typeof(Assets._Project.Develop.Runtime.Utilities.Audio.AudioCatalog), "Configs/AudioCatalog");
         }
 

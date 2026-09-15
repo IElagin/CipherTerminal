@@ -356,6 +356,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Meta.Presentation.MainMenuController
   _view: {fileID: 525543464}
   _keyboard: {fileID: 1260767617}
+  _walletView: {fileID: 8608212301911592436}
 --- !u!114 &1260767619
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1226,6 +1227,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7898957345654757001, guid: d30bd488832fa4ecf87797cf34a62872, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 8271482078513282734, guid: d30bd488832fa4ecf87797cf34a62872, type: 3}
       propertyPath: m_Name
       value: TerminalCanvas
@@ -1235,6 +1240,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d30bd488832fa4ecf87797cf34a62872, type: 3}
+--- !u!114 &8608212301911592436 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 94450517721048805, guid: d30bd488832fa4ecf87797cf34a62872, type: 3}
+  m_PrefabInstance: {fileID: 8608212301911592435}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a89dfe4f1ad74633a53c7cc4672b3b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.UI.WalletPanelView
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
