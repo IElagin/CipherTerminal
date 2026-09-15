@@ -120,8 +120,19 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
 
         private void SetupAppSettings()
         {
+            const int targetFrameRate = 60;
+
+            Application.targetFrameRate = targetFrameRate;
+            Application.runInBackground = false;
+
+#if UNITY_EDITOR
+            // Game View VSync must also be enabled in the Editor window.
+            int refreshRate = Mathf.RoundToInt((float)Screen.currentResolution.refreshRateRatio.value);
+            QualitySettings.vSyncCount = Mathf.Clamp(
+                Mathf.CeilToInt(refreshRate / (float)targetFrameRate), 1, 4);
+#else
             QualitySettings.vSyncCount = 0;
-            Application.targetFrameRate = 60;
+#endif
         }
     }
 }

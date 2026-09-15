@@ -6,7 +6,8 @@
 
 1. Откройте проект в **Unity 6000.5.8f1**.
 2. Откройте сцену `Assets/_Project/Scenes/GameEntryPoint.unity`.
-3. Нажмите **Play**.
+3. В окне **Game** включите **VSync (Game view only)** для снижения нагрузки Editor.
+4. Нажмите **Play**.
 
 ## Управление
 
