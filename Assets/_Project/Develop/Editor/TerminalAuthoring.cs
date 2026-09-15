@@ -17,7 +17,6 @@ using Assets._Project.Develop.Runtime.Gameplay.Presentation;
 using Assets._Project.Develop.Runtime.Meta.Infrastructure;
 using Assets._Project.Develop.Runtime.Meta.Presentation;
 using Assets._Project.Develop.Runtime.Utilities.Input;
-using Assets._Project.Develop.Runtime.Utilities.CoroutinesManagement;
 using Assets._Project.Develop.Runtime.Utilities.LoadingScreen;
 using Assets._Project.Develop.Runtime.UI;
 
@@ -146,11 +145,6 @@ namespace Assets._Project.Develop.Editor
                 AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<SequenceConfig>(), configPath);
 
             NewScene();
-
-            var performer = new GameObject("CoroutinesPerformer");
-            performer.AddComponent<CoroutinesPerformer>();
-            PrefabUtility.SaveAsPrefabAsset(performer, Root + "Resources/Utilities/CoroutinesPerformer.prefab");
-            UnityEngine.Object.DestroyImmediate(performer);
 
             RectTransform cover = Canvas("StandardLoadingScreen", new Vector2(1920, 1080), 1000);
             Image bg = Box(cover, "Background", Vector2.zero, new Vector2(4000, 4000), LoadingBackground);

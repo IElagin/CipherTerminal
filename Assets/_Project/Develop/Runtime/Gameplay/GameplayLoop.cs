@@ -75,6 +75,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay
             _running = false;
         }
 
+        public void AllowNavigationRetry()
+        {
+            if (_stopped || Session.State == SequenceState.Input)
+                return;
+
+            _navigationRequested = false;
+        }
+
         private void SubmitSequenceCharacter(char character)
         {
             if (!Session.Submit(character))

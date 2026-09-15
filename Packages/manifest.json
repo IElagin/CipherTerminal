@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.11",
     "com.unity.ai.navigation": "2.0.14",
     "com.unity.collab-proxy": "2.13.5",
     "com.unity.ide.rider": "3.0.38",
@@ -45,6 +46,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0",
-    "com.unity.pipeline": "0.6.0-exp.1"
+    "com.unity.pipeline": "0.6.0-exp.1",
+    "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.19.0"
   }
 }

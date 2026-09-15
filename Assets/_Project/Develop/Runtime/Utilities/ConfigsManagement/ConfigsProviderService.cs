@@ -1,6 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 
 namespace Assets._Project.Develop.Runtime.Utilities.ConfigsManagement
 {
@@ -14,18 +15,22 @@ namespace Assets._Project.Develop.Runtime.Utilities.ConfigsManagement
             _loaders = loaders;
         }
 
-        public IEnumerator LoadAsync()
+        public async UniTask LoadAsync(CancellationToken cancellationToken = default)
         {
-            _configs.Clear();
+            var loaded = new Dictionary<Type, object>();
 
             foreach (IConfigsLoader loader in _loaders)
             {
-                yield return loader.LoadAsync(loadedConfigs =>
-                {
-                    foreach (KeyValuePair<Type, object> config in loadedConfigs)
-                        _configs.Add(config.Key, config.Value);
-                });
+                Dictionary<Type, object> configs = await loader.LoadAsync(cancellationToken);
+                foreach (KeyValuePair<Type, object> config in configs)
+                    loaded.Add(config.Key, config.Value);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            _configs.Clear();
+
+            foreach (KeyValuePair<Type, object> config in loaded)
+                _configs.Add(config.Key, config.Value);
         }
 
         public T GetConfig<T>() where T : class

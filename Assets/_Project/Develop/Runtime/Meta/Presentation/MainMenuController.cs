@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Assets._Project.Develop.Runtime.Gameplay.Sequence;
 using Assets._Project.Develop.Runtime.Gameplay.Infrastructure;
@@ -8,7 +9,7 @@ using Assets._Project.Develop.Runtime.UI;
 
 namespace Assets._Project.Develop.Runtime.Meta.Presentation
 {
-    public sealed class MainMenuController : MonoBehaviour
+    public sealed class MainMenuController : MonoBehaviour, IDisposable
     {
         [SerializeField] private TerminalView _view;
         [SerializeField] private TerminalKeyboard _keyboard;
@@ -16,6 +17,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
         private SceneNavigator _navigator;
         private IAudioService _audio;
         private bool _running;
+        private bool _disposed;
 
         public void Configure(SceneNavigator navigator, IAudioService audio)
         {
@@ -25,6 +27,9 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 
         public void Run()
         {
+            if (_disposed || _running)
+                return;
+
             _running = true;
             _keyboard.Character += OnCharacter;
             _view.DigitsButton.onClick.AddListener(OnDigits);
@@ -60,11 +65,23 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
             _view.SetMenuEnabled(false);
             _keyboard.Deactivate();
             _audio.Play(AudioCue.Key);
-            _navigator.Go(Scenes.Gameplay, new GameplayInputArgs(1, mode));
+            _navigator.Go(Scenes.Gameplay, new GameplayInputArgs(1, mode), OnNavigationFailed);
         }
 
-        private void OnDestroy()
+        private void OnNavigationFailed()
         {
+            if (this == null || _disposed)
+                return;
+
+            _running = true;
+            _view.SetMenuEnabled(true);
+            _keyboard.Activate();
+        }
+
+        private void Stop()
+        {
+            _running = false;
+
             if (_keyboard != null)
             {
                 _keyboard.Deactivate();
@@ -76,6 +93,20 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
                 _view.DigitsButton.onClick.RemoveListener(OnDigits);
                 _view.LettersButton.onClick.RemoveListener(OnLetters);
             }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            Stop();
+        }
+
+        private void OnDestroy()
+        {
+            Dispose();
         }
     }
 }

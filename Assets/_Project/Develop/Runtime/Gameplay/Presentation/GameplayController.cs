@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Assets._Project.Develop.Runtime.Gameplay;
 using Assets._Project.Develop.Runtime.Gameplay.Infrastructure;
@@ -9,7 +10,7 @@ using Assets._Project.Develop.Runtime.UI;
 
 namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
 {
-    public sealed class GameplayController : MonoBehaviour
+    public sealed class GameplayController : MonoBehaviour, IDisposable
     {
         [SerializeField] private TerminalView _view;
         [SerializeField] private TerminalKeyboard _keyboard;
@@ -20,6 +21,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
         private bool _running;
         private bool _subscribed;
         private bool _initialUpdateReceived;
+        private bool _disposed;
 
         public SequenceSession Session => _loop?.Session;
 
@@ -32,7 +34,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
 
         public void Run()
         {
-            if (_running)
+            if (_disposed || _running)
                 return;
 
             _running = true;
@@ -84,17 +86,18 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
 
         private void OnNavigationRequested(GameplayNavigationRequest request)
         {
-            Stop();
+            PauseInput();
 
             if (request.Destination == GameplayNavigationDestination.MainMenu)
             {
-                _navigator.Go(Scenes.MainMenu);
+                _navigator.Go(Scenes.MainMenu, onFailed: OnNavigationFailed);
                 return;
             }
 
             _navigator.Go(
                 Scenes.Gameplay,
-                new GameplayInputArgs(request.LevelNumber, request.Mode));
+                new GameplayInputArgs(request.LevelNumber, request.Mode),
+                OnNavigationFailed);
         }
 
         private void Subscribe()
@@ -109,15 +112,33 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
             _loop.NavigationRequested += OnNavigationRequested;
         }
 
-        private void Stop()
+        private void PauseInput()
         {
             if (!_running)
                 return;
 
             _running = false;
             _keyboard.Deactivate();
-            _keyboard.Character -= OnCharacter;
-            _loop.Stop();
+        }
+
+        private void OnNavigationFailed()
+        {
+            if (this == null || _disposed || _loop == null)
+                return;
+
+            _loop.AllowNavigationRetry();
+            _running = true;
+            _keyboard.Activate();
+        }
+
+        private void Stop()
+        {
+            PauseInput();
+
+            if (_keyboard != null)
+                _keyboard.Character -= OnCharacter;
+
+            _loop?.Stop();
 
             if (!_subscribed)
                 return;
@@ -129,9 +150,18 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
             _loop.NavigationRequested -= OnNavigationRequested;
         }
 
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            Stop();
+        }
+
         private void OnDestroy()
         {
-            Stop();
+            Dispose();
         }
     }
 }

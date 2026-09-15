@@ -1,12 +1,14 @@
-using System.Collections;
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using VContainer;
 using UnityEngine;
 using Assets._Project.Develop.Runtime.Infrastructure;
-using Assets._Project.Develop.Runtime.Infrastructure.DI;
-using Assets._Project.Develop.Runtime.Utilities.SceneManagement;
-using Assets._Project.Develop.Runtime.Utilities.CoroutinesManagement;
 using Assets._Project.Develop.Runtime.Gameplay.Presentation;
 using Assets._Project.Develop.Runtime.Gameplay;
+using Assets._Project.Develop.Runtime.Gameplay.Sequence;
 using Assets._Project.Develop.Runtime.Utilities.Audio;
+using Assets._Project.Develop.Runtime.Utilities.SceneManagement;
 
 namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
 {
@@ -14,24 +16,31 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
     {
         [SerializeField] private GameplayController _controller;
 
-        private DIContainer _container;
+        private IObjectResolver _container;
 
-        public override void ProcessRegistrations(DIContainer container, IInputSceneArgs sceneArgs = null)
+        public override void ProcessRegistrations(IContainerBuilder builder, IInputSceneArgs sceneArgs = null)
         {
-            _container = container;
-
             if (sceneArgs is not GameplayInputArgs args)
-                throw new System.ArgumentException("GameplayInputArgs required", nameof(sceneArgs));
+                throw new ArgumentException("Gameplay requires GameplayInputArgs", nameof(sceneArgs));
 
-            GameplayContextRegistrations.Process(container, args);
-            container.RegisterAsSingle(c => new SceneNavigator(c.Resolve<SceneSwitcherService>(), c.Resolve<ICoroutinesPerformer>()));
+            if (args.LevelNumber <= 0)
+                throw new ArgumentException("Gameplay level number must be positive", nameof(sceneArgs));
+
+            if (!Enum.IsDefined(typeof(SequenceMode), args.Mode))
+                throw new ArgumentException("Gameplay mode is invalid", nameof(sceneArgs));
+
+            GameplayContextRegistrations.Process(builder, args);
+            builder.Register(_ => _controller, Lifetime.Scoped);
         }
 
-        public override IEnumerator Initialize()
+        public override UniTask InitializeAsync(IObjectResolver container, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            _container = container;
             SceneNavigator navigator = _container.Resolve<SceneNavigator>();
-            _controller.Configure(_container.Resolve<GameplayLoop>(), navigator, _container.Resolve<IAudioService>());
-            yield break;
+            GameplayController controller = _container.Resolve<GameplayController>();
+            controller.Configure(_container.Resolve<GameplayLoop>(), navigator, _container.Resolve<IAudioService>());
+            return UniTask.CompletedTask;
         }
 
         public override void Run()

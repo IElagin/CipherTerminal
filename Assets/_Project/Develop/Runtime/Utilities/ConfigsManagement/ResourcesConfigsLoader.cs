@@ -1,6 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 using Assets._Project.Develop.Runtime.Utilities.AssetsManagement;
@@ -19,18 +20,23 @@ namespace Assets._Project.Develop.Runtime.Utilities.ConfigsManagement
             _configsResourcesPaths.Add(typeof(Assets._Project.Develop.Runtime.Utilities.Audio.AudioCatalog), "Configs/AudioCatalog");
         }
 
-        public IEnumerator LoadAsync(Action<Dictionary<Type, object>> onConfigsLoaded)
+        public async UniTask<Dictionary<Type, object>> LoadAsync(CancellationToken cancellationToken = default)
         {
             var loadedConfigs = new Dictionary<Type, object>();
 
             foreach (KeyValuePair<Type, string> configResourcesPath in _configsResourcesPaths)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 ScriptableObject config = _resources.Load<ScriptableObject>(configResourcesPath.Value);
+                if (config == null)
+                    throw new InvalidOperationException($"Missing config: {configResourcesPath.Value}");
+
                 loadedConfigs.Add(configResourcesPath.Key, config);
-                yield return null;
+                await UniTask.NextFrame(cancellationToken: cancellationToken);
             }
 
-            onConfigsLoaded(loadedConfigs);
+            cancellationToken.ThrowIfCancellationRequested();
+            return loadedConfigs;
         }
     }
 }

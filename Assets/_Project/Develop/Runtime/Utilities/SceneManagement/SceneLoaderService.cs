@@ -1,4 +1,6 @@
-using System.Collections;
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -6,16 +8,27 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
 {
     public class SceneLoaderService
     {
-        public IEnumerator LoadAsync(string sceneName, LoadSceneMode loadSceneMode = LoadSceneMode.Single)
+        public async UniTask LoadAsync(string sceneName, LoadSceneMode loadSceneMode = LoadSceneMode.Single,
+            CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
-            yield return new WaitWhile(() => operation.isDone == false);
+            if (operation == null)
+                throw new InvalidOperationException($"Cannot load scene: {sceneName}");
+
+            await operation;
+            cancellationToken.ThrowIfCancellationRequested();
         }
 
-        public IEnumerator UnloadAsync(string sceneName)
+        public async UniTask UnloadAsync(string sceneName, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             AsyncOperation operation = SceneManager.UnloadSceneAsync(sceneName);
-            yield return new WaitWhile(() => operation.isDone == false);
+            if (operation == null)
+                throw new InvalidOperationException($"Cannot unload scene: {sceneName}");
+
+            await operation;
+            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 }

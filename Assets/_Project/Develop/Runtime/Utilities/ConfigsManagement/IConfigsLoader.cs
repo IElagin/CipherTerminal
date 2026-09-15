@@ -1,11 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 
 namespace Assets._Project.Develop.Runtime.Utilities.ConfigsManagement
 {
     public interface IConfigsLoader
     {
-        IEnumerator LoadAsync(Action<Dictionary<Type, object>> onConfigsLoaded);
+        UniTask<Dictionary<Type, object>> LoadAsync(CancellationToken cancellationToken = default);
     }
 }

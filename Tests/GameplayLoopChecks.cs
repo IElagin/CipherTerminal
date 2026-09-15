@@ -12,6 +12,7 @@ public static class GameplayLoopChecks
         RunDoesNotRepeatInitialUpdateOrResetProgress();
         InputSpaceLosesWithoutNavigatingUntilLaterSpace();
         LossRequestsSameModeRetryOnlyOnce();
+        FailedNavigationCanBeRetried();
         WinRequestsMenuOnlyOnce();
         StopIsTerminalAndBlocksFurtherInput();
         InitialUpdateCallbacksCannotSubmitInput();
@@ -113,6 +114,23 @@ public static class GameplayLoopChecks
         Equal(1, results, "win result is emitted once");
         Equal(1, navigation, "win navigation is emitted once");
         Equal(GameplayNavigationDestination.MainMenu, observed.Destination, "win returns to menu");
+    }
+
+    private static void FailedNavigationCanBeRetried()
+    {
+        var loop = Create("1", SequenceMode.Digits);
+        int navigation = 0;
+        loop.NavigationRequested += request => navigation++;
+
+        loop.Run();
+        loop.Submit('9');
+        loop.Submit(' ');
+        loop.Submit(' ');
+        Equal(1, navigation, "a pending navigation request remains latched");
+
+        loop.AllowNavigationRetry();
+        loop.Submit(' ');
+        Equal(2, navigation, "a failed transition can be requested again explicitly");
     }
 
     private static void StopIsTerminalAndBlocksFurtherInput()
