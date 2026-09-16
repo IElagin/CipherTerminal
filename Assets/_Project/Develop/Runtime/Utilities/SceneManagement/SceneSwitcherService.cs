@@ -22,8 +22,6 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
         private CancellationTokenSource _sceneLifetime;
         private bool _isDisposed;
 
-        public bool IsSwitching { get; private set; }
-
         public SceneSwitcherService(SceneLoaderService sceneLoaderService, ILoadingScreen loadingScreen,
             IObjectResolver projectContainer, CancellationToken projectToken)
         {
@@ -32,6 +30,8 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
             _projectContainer = projectContainer;
             _projectToken = projectToken;
         }
+
+        public bool IsSwitching { get; private set; }
 
         public async UniTask SwitchAsync(string sceneName, IInputSceneArgs sceneArgs = null,
             CancellationToken cancellationToken = default)
@@ -69,7 +69,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
                     builder => bootstrap.ProcessRegistrations(builder, sceneArgs));
 
                 using (token.Register(_sceneLifetime.Cancel))
-                    await bootstrap.InitializeAsync(_sceneContainer, _sceneLifetime.Token);
+                    await bootstrap.Initialize(_sceneContainer, _sceneLifetime.Token);
 
                 ThrowIfStopped(token);
                 _loadingScreen.Hide();
@@ -82,7 +82,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
             }
             finally
             {
-                if (!_isDisposed)
+                if (_isDisposed == false)
                     _loadingScreen.Hide();
 
                 IsSwitching = false;
@@ -119,7 +119,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
         private static void ValidateDestination(string sceneName, IInputSceneArgs sceneArgs)
         {
             if (sceneName == Scenes.Empty || sceneName == Scenes.GameEntryPoint ||
-                !Application.CanStreamedLevelBeLoaded(sceneName))
+                Application.CanStreamedLevelBeLoaded(sceneName) == false)
             {
                 throw new ArgumentException($"Invalid destination scene: {sceneName}", nameof(sceneName));
             }
@@ -127,14 +127,10 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
             if (sceneName != Scenes.Gameplay)
                 return;
 
-            if (sceneArgs is not GameplayInputArgs gameplayArgs)
+            if (sceneArgs is not GameplayInputArgs gameplayInputArgs)
                 throw new ArgumentException("Gameplay requires GameplayInputArgs", nameof(sceneArgs));
 
-            if (gameplayArgs.LevelNumber <= 0)
-                throw new ArgumentException("Gameplay level number must be positive", nameof(sceneArgs));
-
-            if (!Enum.IsDefined(typeof(SequenceMode), gameplayArgs.Mode))
-                throw new ArgumentException("Gameplay mode is invalid", nameof(sceneArgs));
+            gameplayInputArgs.Validate(nameof(sceneArgs));
         }
 
         private static SceneBootstrap FindBootstrap(Scene scene)

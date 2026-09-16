@@ -13,6 +13,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
         {
             cancellationToken.ThrowIfCancellationRequested();
             AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
+
             if (operation == null)
                 throw new InvalidOperationException($"Cannot load scene: {sceneName}");
 
@@ -24,6 +25,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
         {
             cancellationToken.ThrowIfCancellationRequested();
             AsyncOperation operation = SceneManager.UnloadSceneAsync(sceneName);
+
             if (operation == null)
                 throw new InvalidOperationException($"Cannot unload scene: {sceneName}");
 

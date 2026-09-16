@@ -14,8 +14,8 @@ namespace Assets._Project.Develop.Runtime.Utilities.Input
         private bool _armed;
         private int _startFrame;
 
-        public event Action<char> Character;
-        public event Action Escape;
+        public event Action<char> CharacterEntered;
+        public event Action EscapePressed;
 
         public void Activate()
         {
@@ -60,7 +60,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.Input
 
         private void OnText(char character)
         {
-            if (_active && _armed && !char.IsControl(character))
+            if (_active && _armed && char.IsControl(character) == false)
                 _characters.Enqueue(character);
         }
 
@@ -69,17 +69,17 @@ namespace Assets._Project.Develop.Runtime.Utilities.Input
             if (_keyboard != Keyboard.current)
                 Bind();
 
-            if (!_active || _keyboard == null)
+            if (_active == false || _keyboard == null)
             {
                 _characters.Clear();
                 return;
             }
 
-            if (!_armed)
+            if (_armed == false)
             {
                 _characters.Clear();
 
-                if (Time.frameCount > _startFrame && !HasCharacterKey(false))
+                if (Time.frameCount > _startFrame && HasCharacterKey(false) == false)
                     _armed = true;
 
                 return;
@@ -88,7 +88,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.Input
             if (_keyboard.escapeKey.wasPressedThisFrame)
             {
                 _characters.Clear();
-                Escape?.Invoke();
+                EscapePressed?.Invoke();
                 return;
             }
 
@@ -96,10 +96,11 @@ namespace Assets._Project.Develop.Runtime.Utilities.Input
 
             // The physical edge is the fallback when the platform sends no text event.
             // Matching queued spaces are discarded below so one press has one delivery.
-            if (spacePressed)
-                Character?.Invoke(' ');
 
-            if (!HasCharacterKey(true))
+            if (spacePressed)
+                CharacterEntered?.Invoke(' ');
+
+            if (HasCharacterKey(true) == false)
             {
                 _characters.Clear();
                 return;
@@ -112,7 +113,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.Input
                 if (character == ' ')
                     continue;
 
-                Character?.Invoke(character);
+                CharacterEntered?.Invoke(character);
             }
         }
 

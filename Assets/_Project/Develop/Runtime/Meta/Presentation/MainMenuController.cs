@@ -13,6 +13,8 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 {
     public sealed class MainMenuController : MonoBehaviour, IDisposable
     {
+        private const int InitialLevelNumber = 1;
+
         [SerializeField] private TerminalView _view;
         [SerializeField] private TerminalKeyboard _keyboard;
         [SerializeField] private WalletPanelView _walletView;
@@ -23,7 +25,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
         private bool _running;
         private bool _disposed;
 
-        public void Configure(SceneNavigator navigator, IAudioService audio, PlayerProgressService progress)
+        public void Initialize(SceneNavigator navigator, IAudioService audio, PlayerProgressService progress)
         {
             _navigator = navigator;
             _audio = audio;
@@ -36,8 +38,8 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
                 return;
 
             _running = true;
-            _keyboard.Character += OnCharacter;
-            _keyboard.Escape += OnEscape;
+            _keyboard.CharacterEntered += OnCharacterEntered;
+            _keyboard.EscapePressed += OnEscapePressed;
             _view.DigitsButton.onClick.AddListener(OnDigits);
             _view.LettersButton.onClick.AddListener(OnLetters);
             _walletView.ToggleButton.onClick.AddListener(OnToggleStatistics);
@@ -48,7 +50,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
             RefreshProgress();
         }
 
-        private void OnCharacter(char character)
+        private void OnCharacterEntered(char character)
         {
             if (character == '1')
                 OnDigits();
@@ -72,7 +74,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 
         private void Choose(SequenceMode mode)
         {
-            if (!_running || _navigator.IsLeaving || !_progress.IsReady || _progress.IsBusy)
+            if (_running == false || _navigator.IsLeaving || _progress.IsReady == false || _progress.IsBusy)
                 return;
 
             _running = false;
@@ -80,7 +82,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
             _walletView.SetInteractable(false);
             _keyboard.Deactivate();
             _audio.Play(AudioCue.Key);
-            _navigator.Go(Scenes.Gameplay, new GameplayInputArgs(1, mode), OnNavigationFailed);
+            _navigator.Go(Scenes.Gameplay, new GameplayInputArgs(InitialLevelNumber, mode), OnNavigationFailed);
         }
 
         private void OnNavigationFailed()
@@ -95,10 +97,10 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 
         private void OnToggleStatistics()
         {
-            if (!_running || !_progress.IsReady || _progress.IsBusy)
+            if (_running == false || _progress.IsReady == false || _progress.IsBusy)
                 return;
 
-            bool expanded = !_walletView.IsExpanded;
+            bool expanded = _walletView.IsExpanded == false;
             _walletView.SetExpanded(expanded);
             _audio.Play(AudioCue.Key);
 
@@ -118,9 +120,9 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
             ShowPersistentStatus();
         }
 
-        private void OnEscape()
+        private void OnEscapePressed()
         {
-            if (!_running || !_walletView.IsExpanded || _progress.IsBusy)
+            if (_running == false || _walletView.IsExpanded == false || _progress.IsBusy)
                 return;
 
             _walletView.SetExpanded(false);
@@ -130,7 +132,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 
         private void OnResetStatistics()
         {
-            if (!_running || !_walletView.IsExpanded || !_progress.IsReady || _progress.IsBusy)
+            if (_running == false || _walletView.IsExpanded == false || _progress.IsReady == false || _progress.IsBusy)
                 return;
 
             ResetStatisticsAsync().Forget(AsyncErrors.Report);
@@ -154,15 +156,17 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
                 case ProgressOperationStatus.Completed:
                     string success = "Статистика сброшена · −" +
                                      _progress.StatisticsResetCost + " золота";
-                    _audio.Play(AudioCue.Success);
+                    _audio.Play(AudioCue.Key);
                     Debug.Log(success);
                     _walletView.ShowStatus(success);
                     break;
+
                 case ProgressOperationStatus.SavedInMemoryOnly:
                     _audio.Play(AudioCue.Error);
                     Debug.LogError(_progress.Error);
                     _walletView.ShowStatus(_progress.Error, true);
                     break;
+
                 case ProgressOperationStatus.InsufficientGold:
                     string insufficient = "Недостаточно золота: нужно " +
                                           _progress.StatisticsResetCost + ", есть " + availableGold;
@@ -170,6 +174,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
                     Debug.Log(insufficient);
                     _walletView.ShowStatus(insufficient, true);
                     break;
+
                 default:
                     _audio.Play(AudioCue.Error);
                     ShowPersistentStatus();
@@ -186,13 +191,13 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
                 _progress.StatisticsResetCost);
             RefreshInteractability();
 
-            if (!string.IsNullOrEmpty(_progress.Error))
+            if (string.IsNullOrEmpty(_progress.Error) == false)
                 _walletView.ShowStatus(_progress.Error, true);
         }
 
         private void RefreshProgress()
         {
-            if (!_progress.IsReady)
+            if (_progress.IsReady == false)
             {
                 _walletView.ShowUnavailable(_progress.Error ?? "Прогресс недоступен");
                 RefreshInteractability();
@@ -208,7 +213,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 
         private void RefreshInteractability()
         {
-            bool interactable = _running && _progress.IsReady && !_progress.IsBusy;
+            bool interactable = _running && _progress.IsReady && _progress.IsBusy == false;
             _view.SetMenuEnabled(interactable);
             _walletView.SetInteractable(interactable);
         }
@@ -228,8 +233,8 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
             if (_keyboard != null)
             {
                 _keyboard.Deactivate();
-                _keyboard.Character -= OnCharacter;
-                _keyboard.Escape -= OnEscape;
+                _keyboard.CharacterEntered -= OnCharacterEntered;
+                _keyboard.EscapePressed -= OnEscapePressed;
             }
 
             if (_view != null)

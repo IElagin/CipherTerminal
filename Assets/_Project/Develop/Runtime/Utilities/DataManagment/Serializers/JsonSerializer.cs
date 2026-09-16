@@ -4,7 +4,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.Serializers
 {
     public sealed class JsonSerializer : IDataSerializer
     {
-        private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings _settings = new JsonSerializerSettings
         {
             Formatting = Formatting.None,
             MissingMemberHandling = MissingMemberHandling.Error,
@@ -12,9 +12,9 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.Serializers
         };
 
         public string Serialize<TData>(TData data)
-            => JsonConvert.SerializeObject(data, Settings);
+            => JsonConvert.SerializeObject(data, _settings);
 
         public TData Deserialize<TData>(string serializedData)
-            => JsonConvert.DeserializeObject<TData>(serializedData, Settings);
+            => JsonConvert.DeserializeObject<TData>(serializedData, _settings);
     }
 }

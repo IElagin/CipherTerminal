@@ -6,16 +6,13 @@ namespace Assets._Project.Develop.Runtime.Utilities.Audio
     [DisallowMultipleComponent]
     public sealed class AudioService : MonoBehaviour, IAudioService
     {
+        private const float FullVolume = 1f;
+
         [SerializeField] private AudioSource _ambientSource;
         [SerializeField] private AudioSource _effectsSource;
 
         private AudioCatalog _catalog;
         private bool _initialized;
-
-        private void Awake()
-        {
-            DontDestroyOnLoad(gameObject);
-        }
 
         public void Initialize(AudioCatalog catalog)
         {
@@ -42,14 +39,19 @@ namespace Assets._Project.Develop.Runtime.Utilities.Audio
 
             _effectsSource.spatialBlend = 0f;
             _effectsSource.loop = false;
-            _effectsSource.volume = 1f;
+            _effectsSource.volume = FullVolume;
 
             _ambientSource.Play();
         }
 
+        private void Awake()
+        {
+            DontDestroyOnLoad(gameObject);
+        }
+
         public void Play(AudioCue cue)
         {
-            if (!_initialized)
+            if (_initialized == false)
                 throw new InvalidOperationException("AudioService must be initialized before playback");
 
             switch (cue)
@@ -58,12 +60,15 @@ namespace Assets._Project.Develop.Runtime.Utilities.Audio
                     int index = UnityEngine.Random.Range(0, _catalog.KeyClipCount);
                     _effectsSource.PlayOneShot(_catalog.GetKeyClip(index), _catalog.KeyVolume);
                     break;
+
                 case AudioCue.Error:
                     _effectsSource.PlayOneShot(_catalog.ErrorClip, _catalog.ErrorVolume);
                     break;
+
                 case AudioCue.Success:
                     _effectsSource.PlayOneShot(_catalog.SuccessClip, _catalog.SuccessVolume);
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(cue), cue, null);
             }

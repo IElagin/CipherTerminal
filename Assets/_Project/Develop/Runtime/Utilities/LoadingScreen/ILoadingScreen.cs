@@ -2,8 +2,10 @@ namespace Assets._Project.Develop.Runtime.Utilities.LoadingScreen
 {
     public interface ILoadingScreen
     {
-        bool IsShown { get; }
-        void Show();
-        void Hide();
+        public bool IsShown { get; }
+
+        public void Show();
+
+        public void Hide();
     }
 }

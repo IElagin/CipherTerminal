@@ -2,6 +2,9 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Sequence
 {
     public sealed class SequenceGenerator
     {
+        public const int MinimumLength = 1;
+        public const int MaximumLength = 12;
+
         private readonly System.Random _random;
 
         public SequenceGenerator(System.Random random)
@@ -11,7 +14,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Sequence
 
         public string Generate(string symbols, int length)
         {
-            if (string.IsNullOrEmpty(symbols) || length < 1 || length > 12)
+            if (string.IsNullOrEmpty(symbols) || length < MinimumLength || length > MaximumLength)
                 throw new System.ArgumentException("Invalid sequence configuration");
 
             char[] result = new char[length];

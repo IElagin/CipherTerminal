@@ -33,13 +33,30 @@ namespace Assets._Project.Develop.Editor
         private const string MainMenuScreenPrefabPath = ScreenPrefabFolder + "/MainMenuScreen.prefab";
         private const string GameplayScreenPrefabPath = ScreenPrefabFolder + "/GameplayScreen.prefab";
         private const string LoadingPrefabPath = Root + "Resources/Utilities/StandardLoadingScreen.prefab";
+        private const int DesignWidth = 1920;
+        private const int DesignHeight = 1080;
+        private const int LoadingSortOrder = 1000;
+        private const float CompositionScale = 1.2f;
+        private const float CenterFraction = .5f;
+        private const float LineThickness = 1.6f;
+        private const int RingSegmentCount = 48;
+        private const float RingRadius = 42f;
+        private const float RadiansPerTurn = Mathf.PI * 2;
+        private const int NextSegmentOffset = 1;
+        private const int SymbolDisplayOffset = 1;
+        private const float CardColorMultiplier = 2f;
+        private const float CardFadeDuration = .12f;
+        private const float LoadingCameraDepth = -100f;
+        private const int FontSamplingSize = 72;
+        private const int FontAtlasPadding = 8;
+        private const int FontAtlasSize = 1024;
 
         private static TMP_FontAsset _font;
-        private static readonly Color Amber = TerminalView.Amber;
-        private static readonly Color Ivory = TerminalView.Ivory;
-        private static readonly Color Muted = new Color(.62f, .54f, .4f);
-        private static readonly Color LoadingBackground = new Color(.055f, .05f, .035f);
-        private static readonly Dictionary<string, string> RussianLabels = new Dictionary<string, string>
+        private static readonly Color _amber = TerminalView.Amber;
+        private static readonly Color _ivory = TerminalView.Ivory;
+        private static readonly Color _muted = new Color(.62f, .54f, .4f);
+        private static readonly Color _loadingBackground = new Color(.055f, .05f, .035f);
+        private static readonly Dictionary<string, string> _russianLabels = new Dictionary<string, string>
         {
             { "Loading", "ИНИЦИАЛИЗАЦИЯ ТЕРМИНАЛА" },
             { "Series", "ШИФРОВАЛЬНЫЙ АППАРАТ\nСЕРИЯ 01" },
@@ -122,7 +139,7 @@ namespace Assets._Project.Develop.Editor
         }
 
         [MenuItem("Cipher Terminal/Author Initial Scenes")]
-        public static void Create()
+        public static void CreateInitialScenes()
         {
             if (Application.isPlaying)
                 throw new InvalidOperationException("Stop Play Mode before authoring");
@@ -144,27 +161,31 @@ namespace Assets._Project.Develop.Editor
             if (AssetDatabase.LoadAssetAtPath<SequenceConfig>(configPath) == null)
                 AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<SequenceConfig>(), configPath);
 
-            NewScene();
+            CreateScene();
 
-            RectTransform cover = Canvas("StandardLoadingScreen", new Vector2(1920, 1080), 1000);
-            Image bg = Box(cover, "Background", Vector2.zero, new Vector2(4000, 4000), LoadingBackground);
-            bg.rectTransform.anchorMin = Vector2.zero;
-            bg.rectTransform.anchorMax = Vector2.one;
-            bg.rectTransform.offsetMin = Vector2.zero;
-            bg.rectTransform.offsetMax = Vector2.zero;
-            bg.raycastTarget = true;
+            RectTransform cover = CreateCanvas("StandardLoadingScreen", new Vector2(DesignWidth, DesignHeight), LoadingSortOrder);
+            Vector2 backgroundSize = new Vector2(4000, 4000);
+            Image loadingBackground = CreateBox(cover, "Background", Vector2.zero, backgroundSize, _loadingBackground);
+            loadingBackground.rectTransform.anchorMin = Vector2.zero;
+            loadingBackground.rectTransform.anchorMax = Vector2.one;
+            loadingBackground.rectTransform.offsetMin = Vector2.zero;
+            loadingBackground.rectTransform.offsetMax = Vector2.zero;
+            loadingBackground.raycastTarget = true;
 
-            Label(cover, "Loading", "ИНИЦИАЛИЗАЦИЯ ТЕРМИНАЛА", 0, 0, 920, 100, 28, Amber, 2);
+            var loadingBounds = new Rect(0, 0, 920, 100);
+            const float loadingFontSize = 28;
+            const float loadingCharacterSpacing = 2;
+            CreateLabel(cover, "Loading", "ИНИЦИАЛИЗАЦИЯ ТЕРМИНАЛА", loadingBounds, loadingFontSize, _amber, loadingCharacterSpacing);
             EnsureLoadingCamera(cover);
             cover.gameObject.AddComponent<StandardLoadingScreen>();
             PrefabUtility.SaveAsPrefabAsset(cover.gameObject, Root + "Resources/Utilities/StandardLoadingScreen.prefab");
             UnityEngine.Object.DestroyImmediate(cover.gameObject);
-            Save("Empty");
+            SaveScene("Empty");
 
-            NewScene();
-            Camera();
+            CreateScene();
+            CreateCamera();
             new GameObject("GameEntryPoint").AddComponent<GameEntryPoint>();
-            Save("GameEntryPoint");
+            SaveScene("GameEntryPoint");
 
             CreateMenu();
             CreateGameplay();
@@ -178,8 +199,8 @@ namespace Assets._Project.Develop.Editor
             };
 
             PlayerSettings.productName = "Терминал шифрования";
-            PlayerSettings.defaultScreenWidth = 1920;
-            PlayerSettings.defaultScreenHeight = 1080;
+            PlayerSettings.defaultScreenWidth = DesignWidth;
+            PlayerSettings.defaultScreenHeight = DesignHeight;
             AssetDatabase.SaveAssets();
             EditorSceneManager.OpenScene(Root + "Scenes/GameEntryPoint.unity");
             Debug.Log("Cipher Terminal scenes and prefabs authored");
@@ -187,76 +208,111 @@ namespace Assets._Project.Develop.Editor
 
         private static void CreateMenu()
         {
-            NewScene();
-            Camera();
+            CreateScene();
+            CreateCamera();
 
-            RectTransform ui = Common("ВЫБЕРИТЕ ПРОТОКОЛ", out TerminalView view, out TMP_Text protocol, out Image pulse);
-            var digits = ModeCard(ui, "Digits", -290, "1", "ЦИФРЫ", "ЧИСЛОВОЙ КАНАЛ  /  0–9");
-            var letters = ModeCard(ui, "Letters", 290, "2", "БУКВЫ", "БУКВЕННЫЙ КАНАЛ  /  A–Z");
-            Label(ui, "Instructions", "ПОВТОРИТЕ КОД. ВАЖЕН КАЖДЫЙ СИМВОЛ.", 0, -242, 1300, 50, 18, Ivory, 1);
-            Label(ui, "InputHint", "НАЖМИТЕ 1 ИЛИ 2 ДЛЯ ПОДКЛЮЧЕНИЯ", 0, -310, 1300, 50, 18, Amber, 2);
-            Set(view, "_digitsButton", digits);
-            Set(view, "_lettersButton", letters);
-            Set(view, "_pulse", pulse);
+            RectTransform ui = CreateScreenComposition("ВЫБЕРИТЕ ПРОТОКОЛ", out TerminalView view, out TMP_Text protocol, out Image pulse);
+            float digitsHorizontalOffset = -290;
+            var digits = CreateModeCard(ui, "Digits", digitsHorizontalOffset, "1", "ЦИФРЫ", "ЧИСЛОВОЙ КАНАЛ  /  0–9");
+            float lettersHorizontalOffset = 290;
+            var letters = CreateModeCard(ui, "Letters", lettersHorizontalOffset, "2", "БУКВЫ", "БУКВЕННЫЙ КАНАЛ  /  A–Z");
+            var instructionsBounds = new Rect(0, -242, 1300, 50);
+            const float instructionsFontSize = 18;
+            const float instructionsCharacterSpacing = 1;
+            CreateLabel(ui, "Instructions", "ПОВТОРИТЕ КОД. ВАЖЕН КАЖДЫЙ СИМВОЛ.", instructionsBounds, instructionsFontSize, _ivory, instructionsCharacterSpacing);
+            var inputHintBounds = new Rect(0, -310, 1300, 50);
+            const float inputHintFontSize = 18;
+            const float inputHintCharacterSpacing = 2;
+            CreateLabel(ui, "InputHint", "НАЖМИТЕ 1 ИЛИ 2 ДЛЯ ПОДКЛЮЧЕНИЯ", inputHintBounds, inputHintFontSize, _amber, inputHintCharacterSpacing);
+            SetObjectReference(view, "_digitsButton", digits);
+            SetObjectReference(view, "_lettersButton", letters);
+            SetObjectReference(view, "_pulse", pulse);
 
             var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             eventSystem.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();
 
-            var go = new GameObject("Bootstrap");
-            var bootstrap = go.AddComponent<MainMenuBootstrap>();
-            var controller = go.AddComponent<MainMenuController>();
-            var keyboard = go.AddComponent<TerminalKeyboard>();
-            Set(bootstrap, "_controller", controller);
-            Set(controller, "_view", view);
-            Set(controller, "_keyboard", keyboard);
+            var createdObject = new GameObject("Bootstrap");
+            var bootstrap = createdObject.AddComponent<MainMenuBootstrap>();
+            var controller = createdObject.AddComponent<MainMenuController>();
+            var keyboard = createdObject.AddComponent<TerminalKeyboard>();
+            SetObjectReference(bootstrap, "_controller", controller);
+            SetObjectReference(controller, "_view", view);
+            SetObjectReference(controller, "_keyboard", keyboard);
 
             view.SetMenuEnabled(false);
             SaveScreenPrefabAndConnect((RectTransform)ui.parent, MainMenuScreenPrefabPath);
-            Save("MainMenu");
+            SaveScene("MainMenu");
         }
 
         private static void CreateGameplay()
         {
-            NewScene();
-            Camera();
+            CreateScene();
+            CreateCamera();
 
-            RectTransform ui = Common("ЦИФРОВОЙ ПРОТОКОЛ", out TerminalView view, out TMP_Text protocol, out Image pulse);
-            RectTransform row = Rect(ui, "Sequence", 0, -5, 1320, 220);
-            TerminalCell[] cells = new TerminalCell[12];
+            RectTransform ui = CreateScreenComposition("ЦИФРОВОЙ ПРОТОКОЛ", out TerminalView view, out TMP_Text protocol, out Image pulse);
+            float sequenceY = -5;
+            float sequenceWidth = 1320;
+            float sequenceHeight = 220;
+            RectTransform row = CreateRect(ui, "Sequence", 0, sequenceY, sequenceWidth, sequenceHeight);
+            TerminalCell[] cells = new TerminalCell[Runtime.Gameplay.Sequence.SequenceGenerator.MaximumLength];
 
             for (int i = 0; i < cells.Length; i++)
             {
-                Image border = Box(row, "Symbol " + (i + 1), new Vector2(0, 0), new Vector2(190, 215), Muted);
-                Image fill = Box(border.rectTransform, "Fill", Vector2.zero, new Vector2(186, 211), new Color(.055f, .05f, .035f));
+                int symbolNumber = i + SymbolDisplayOffset;
+                Vector2 symbolCellPosition = Vector2.zero;
+                Vector2 symbolCellSize = new Vector2(190, 215);
+                Image border = CreateBox(row, "Symbol " + symbolNumber, symbolCellPosition, symbolCellSize, _muted);
+                Vector2 fillSize = new Vector2(186, 211);
+                Color fillColor = new Color(.055f, .05f, .035f);
+                Image fill = CreateBox(border.rectTransform, "Fill", Vector2.zero, fillSize, fillColor);
                 // Fill follows resized cell so configurable sequence length remains supported.
                 fill.rectTransform.anchorMin = Vector2.zero;
                 fill.rectTransform.anchorMax = Vector2.one;
-                fill.rectTransform.offsetMin = new Vector2(2, 2);
-                fill.rectTransform.offsetMax = new Vector2(-2, -2);
+                Vector2 borderInset = new Vector2(2, 2);
+                fill.rectTransform.offsetMin = borderInset;
+                fill.rectTransform.offsetMax = -borderInset;
 
-                TMP_Text symbol = Label(border.transform, "Symbol", "0", 0, 12, 170, 140, 94, Ivory);
-                TMP_Text marker = Label(border.transform, "State", "", 0, -72, 180, 32, 13, Amber, 1);
+                var symbolBounds = new Rect(0, 12, 170, 140);
+                const float symbolFontSize = 94;
+                TMP_Text symbol = CreateLabel(border.transform, "Symbol", "0", symbolBounds, symbolFontSize, _ivory);
+                var stateBounds = new Rect(0, -72, 180, 32);
+                const float stateFontSize = 13;
+                const float stateCharacterSpacing = 1;
+                TMP_Text marker = CreateLabel(border.transform, "State", "", stateBounds, stateFontSize, _amber, stateCharacterSpacing);
                 cells[i] = border.gameObject.AddComponent<TerminalCell>();
-                Set(cells[i], "_symbol", symbol);
-                Set(cells[i], "_marker", marker);
-                Set(cells[i], "_border", border);
-                Set(cells[i], "_fill", fill);
+                SetObjectReference(cells[i], "_symbol", symbol);
+                SetObjectReference(cells[i], "_marker", marker);
+                SetObjectReference(cells[i], "_border", border);
+                SetObjectReference(cells[i], "_fill", fill);
             }
 
-            Image cursor = Box(row, "Cursor", new Vector2(0, -92), new Vector2(40, 2), Amber);
-            Image sweep = Box(row, "CompletionSweep", Vector2.zero, new Vector2(4, 215), new Color(1, .69f, .23f, .35f));
+            Vector2 cursorPosition = new Vector2(0, -92);
+            Vector2 cursorSize = new Vector2(40, 2);
+            Image cursor = CreateBox(row, "Cursor", cursorPosition, cursorSize, _amber);
+            Vector2 completionSweepSize = new Vector2(4, 215);
+            Color completionSweepColor = new Color(1, .69f, .23f, .35f);
+            Image sweep = CreateBox(row, "CompletionSweep", Vector2.zero, completionSweepSize, completionSweepColor);
             sweep.gameObject.SetActive(false);
-            Set(view, "_sweep", sweep);
-            TMP_Text progress = Label(ui, "Progress", "0 / 6  ПРОВЕРЕНО", 0, -177, 1300, 42, 21, Amber, 3);
-            TMP_Text outcome = Label(ui, "Outcome", "", 0, -246, 1300, 60, 30, Amber, 7);
-            TMP_Text hint = Label(ui, "Hint", "ВВЕДИТЕ ПОСЛЕДОВАТЕЛЬНОСТЬ", 0, -316, 1300, 45, 19, Ivory, 2);
-            Set(view, "_protocol", protocol);
-            Set(view, "_progress", progress);
-            Set(view, "_outcome", outcome);
-            Set(view, "_hint", hint);
-            Set(view, "_cursor", cursor);
-            Set(view, "_pulse", pulse);
-            Set(view, "_cellRow", row);
+            SetObjectReference(view, "_sweep", sweep);
+            var progressBounds = new Rect(0, -177, 1300, 42);
+            const float progressFontSize = 21;
+            const float progressCharacterSpacing = 3;
+            TMP_Text progress = CreateLabel(ui, "Progress", "0 / 6  ПРОВЕРЕНО", progressBounds, progressFontSize, _amber, progressCharacterSpacing);
+            var outcomeBounds = new Rect(0, -246, 1300, 60);
+            const float outcomeFontSize = 30;
+            const float outcomeCharacterSpacing = 7;
+            TMP_Text outcome = CreateLabel(ui, "Outcome", "", outcomeBounds, outcomeFontSize, _amber, outcomeCharacterSpacing);
+            var hintBounds = new Rect(0, -316, 1300, 45);
+            const float hintFontSize = 19;
+            const float hintCharacterSpacing = 2;
+            TMP_Text hint = CreateLabel(ui, "Hint", "ВВЕДИТЕ ПОСЛЕДОВАТЕЛЬНОСТЬ", hintBounds, hintFontSize, _ivory, hintCharacterSpacing);
+            SetObjectReference(view, "_protocol", protocol);
+            SetObjectReference(view, "_progress", progress);
+            SetObjectReference(view, "_outcome", outcome);
+            SetObjectReference(view, "_hint", hint);
+            SetObjectReference(view, "_cursor", cursor);
+            SetObjectReference(view, "_pulse", pulse);
+            SetObjectReference(view, "_cellRow", row);
 
             var serializedView = new SerializedObject(view);
             var cellProperty = serializedView.FindProperty("_cells");
@@ -266,23 +322,27 @@ namespace Assets._Project.Develop.Editor
                 cellProperty.GetArrayElementAtIndex(i).objectReferenceValue = cells[i];
 
             serializedView.ApplyModifiedPropertiesWithoutUndo();
-            view.ShowSequence(new Runtime.Gameplay.Sequence.SequenceSession("482916"), Runtime.Gameplay.Sequence.SequenceMode.Digits);
+            const int previewSeed = 0;
+            var previewGenerator = new Runtime.Gameplay.Sequence.SequenceGenerator(new System.Random(previewSeed));
+            var previewSession = new Runtime.Gameplay.Sequence.SequenceSession(previewGenerator);
+            previewSession.Initialize("0123456789", cells.Length);
+            view.ShowSequence(previewSession, Runtime.Gameplay.Sequence.SequenceMode.Digits);
 
-            var go = new GameObject("Bootstrap");
-            var bootstrap = go.AddComponent<GameplayBootstrap>();
-            var controller = go.AddComponent<GameplayController>();
-            var keyboard = go.AddComponent<TerminalKeyboard>();
-            Set(bootstrap, "_controller", controller);
-            Set(controller, "_view", view);
-            Set(controller, "_keyboard", keyboard);
+            var createdObject = new GameObject("Bootstrap");
+            var bootstrap = createdObject.AddComponent<GameplayBootstrap>();
+            var controller = createdObject.AddComponent<GameplayController>();
+            var keyboard = createdObject.AddComponent<TerminalKeyboard>();
+            SetObjectReference(bootstrap, "_controller", controller);
+            SetObjectReference(controller, "_view", view);
+            SetObjectReference(controller, "_keyboard", keyboard);
 
             SaveScreenPrefabAndConnect((RectTransform)ui.parent, GameplayScreenPrefabPath);
-            Save("Gameplay");
+            SaveScene("Gameplay");
         }
 
-        private static RectTransform Common(string mode, out TerminalView view, out TMP_Text protocol, out Image pulse)
+        private static RectTransform CreateScreenComposition(string mode, out TerminalView view, out TMP_Text protocol, out Image pulse)
         {
-            RectTransform canvas = Canvas("TerminalCanvas", new Vector2(1920, 1080), 0);
+            RectTransform canvas = CreateCanvas("TerminalCanvas", new Vector2(DesignWidth, DesignHeight), 0);
             var background = new GameObject("Background", typeof(RectTransform), typeof(RawImage));
             background.transform.SetParent(canvas, false);
 
@@ -292,42 +352,86 @@ namespace Assets._Project.Develop.Editor
             backgroundRect.offsetMin = Vector2.zero;
             backgroundRect.offsetMax = Vector2.zero;
 
-            var raw = background.GetComponent<RawImage>();
-            raw.texture = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Art/Textures/TerminalBackground.png");
-            raw.raycastTarget = false;
-            RectTransform ui = Rect(canvas, "Composition", 0, 0, 1600, 900);
+            var backgroundImage = background.GetComponent<RawImage>();
+            backgroundImage.texture = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Art/Textures/TerminalBackground.png");
+            backgroundImage.raycastTarget = false;
+            float compositionWidth = 1600;
+            float compositionHeight = 900;
+            RectTransform ui = CreateRect(canvas, "Composition", 0, 0, compositionWidth, compositionHeight);
             // Preserve the authored local coordinates while fitting the 1920×1080 design canvas.
-            ui.localScale = Vector3.one * 1.2f;
+            ui.localScale = Vector3.one * CompositionScale;
             view = ui.gameObject.AddComponent<TerminalView>();
 
-            Line(ui, "Frame Top", -770, 421, 770, 421, Muted);
-            Line(ui, "Frame Bottom", -770, -421, 770, -421, Muted);
-            Line(ui, "Frame Left", -770, -421, -770, 421, Muted);
-            Line(ui, "Frame Right", 770, -421, 770, 421, Muted);
-            foreach (int side in new[] { -1, 1 })
+            const float frameLeft = -770;
+            const float frameRight = 770;
+            const float frameTop = 421;
+            const float frameBottom = -421;
+            CreateLine(ui, "Frame Top", frameLeft, frameTop, frameRight, frameTop, _muted);
+            CreateLine(ui, "Frame Bottom", frameLeft, frameBottom, frameRight, frameBottom, _muted);
+            CreateLine(ui, "Frame Left", frameLeft, frameBottom, frameLeft, frameTop, _muted);
+            CreateLine(ui, "Frame Right", frameRight, frameBottom, frameRight, frameTop, _muted);
+
+            int[] registrationSides = { -1, 1 };
+
+            foreach (int side in registrationSides)
             {
-                Line(ui, "Registration", side * 733 - 9, 190, side * 733 + 9, 190, Muted);
-                Line(ui, "Registration", side * 733, 181, side * 733, 199, Muted);
-                Line(ui, "Registration", side * 733 - 9, -190, side * 733 + 9, -190, Muted);
-                Line(ui, "Registration", side * 733, -199, side * 733, -181, Muted);
+                const float registrationOffset = 733f;
+                const float registrationHalfWidth = 9f;
+                const float registrationVerticalOffset = 190f;
+                const float registrationTop = 199f;
+                const float registrationBottom = 181f;
+                float registrationCenter = side * registrationOffset;
+                float registrationLeft = registrationCenter - registrationHalfWidth;
+                float registrationRight = registrationCenter + registrationHalfWidth;
+                CreateLine(ui, "Registration", registrationLeft, registrationVerticalOffset, registrationRight, registrationVerticalOffset, _muted);
+                CreateLine(ui, "Registration", registrationCenter, registrationBottom, registrationCenter, registrationTop, _muted);
+                CreateLine(ui, "Registration", registrationLeft, -registrationVerticalOffset, registrationRight, -registrationVerticalOffset, _muted);
+                CreateLine(ui, "Registration", registrationCenter, -registrationTop, registrationCenter, -registrationBottom, _muted);
             }
 
-            Label(ui, "Series", "ШИФРОВАЛЬНЫЙ АППАРАТ\nСЕРИЯ 01", -564, 365, 360, 60, 12, Muted, 1).alignment = TextAlignmentOptions.Left;
-            Label(ui, "Status", "ЛОКАЛЬНОЕ СОЕДИНЕНИЕ\nКЛАВИАТУРА В СЕТИ", 564, 365, 360, 60, 12, Muted, 1).alignment = TextAlignmentOptions.Right;
-            Seal(ui, new Vector2(0, 329));
-            Label(ui, "Title", "ТЕРМИНАЛ ШИФРОВАНИЯ", 0, 244, 1370, 85, 38, Amber, 5);
-            protocol = Label(ui, "Protocol", mode, 0, 176, 1100, 45, 21, Ivory, 3);
-            Line(ui, "Divider", -330, 134, 330, 134, new Color(.4f, .3f, .15f));
-            Label(ui, "Footer", "ТЕРМИНАЛ ШИФРОВАНИЯ   /   ПОЛЕВАЯ МОДЕЛЬ А", 0, -386, 1300, 34, 12, Muted, 1);
-            pulse = Box(ui, "FeedbackPulse", Vector2.zero, new Vector2(1400, 630), Color.clear);
+            var seriesBounds = new Rect(-564, 365, 360, 60);
+            const float seriesFontSize = 12;
+            const float seriesCharacterSpacing = 1;
+            CreateLabel(ui, "Series", "ШИФРОВАЛЬНЫЙ АППАРАТ\nСЕРИЯ 01", seriesBounds, seriesFontSize, _muted, seriesCharacterSpacing).alignment = TextAlignmentOptions.Left;
+            var statusBounds = new Rect(564, 365, 360, 60);
+            const float statusFontSize = 12;
+            const float statusCharacterSpacing = 1;
+            CreateLabel(ui, "Status", "ЛОКАЛЬНОЕ СОЕДИНЕНИЕ\nКЛАВИАТУРА В СЕТИ", statusBounds, statusFontSize, _muted, statusCharacterSpacing).alignment = TextAlignmentOptions.Right;
+            Vector2 sealPosition = new Vector2(0, 329);
+            CreateSeal(ui, sealPosition);
+            var titleBounds = new Rect(0, 244, 1370, 85);
+            const float titleFontSize = 38;
+            const float titleCharacterSpacing = 5;
+            CreateLabel(ui, "Title", "ТЕРМИНАЛ ШИФРОВАНИЯ", titleBounds, titleFontSize, _amber, titleCharacterSpacing);
+            var protocolBounds = new Rect(0, 176, 1100, 45);
+            const float protocolFontSize = 21;
+            const float protocolCharacterSpacing = 3;
+            protocol = CreateLabel(ui, "Protocol", mode, protocolBounds, protocolFontSize, _ivory, protocolCharacterSpacing);
+            float dividerStartX = -330;
+            float dividerStartY = 134;
+            float dividerEndX = 330;
+            float dividerEndY = 134;
+            Color dividerColor = new Color(.4f, .3f, .15f);
+            CreateLine(ui, "Divider", dividerStartX, dividerStartY, dividerEndX, dividerEndY, dividerColor);
+            var footerBounds = new Rect(0, -386, 1300, 34);
+            const float footerFontSize = 12;
+            const float footerCharacterSpacing = 1;
+            CreateLabel(ui, "Footer", "ТЕРМИНАЛ ШИФРОВАНИЯ   /   ПОЛЕВАЯ МОДЕЛЬ А", footerBounds, footerFontSize, _muted, footerCharacterSpacing);
+            Vector2 feedbackPulseSize = new Vector2(1400, 630);
+            pulse = CreateBox(ui, "FeedbackPulse", Vector2.zero, feedbackPulseSize, Color.clear);
 
             return ui;
         }
 
-        private static Button ModeCard(Transform ui, string name, float x, string key, string title, string subtitle)
+        private static Button CreateModeCard(Transform ui, string name, float x, string key, string title, string subtitle)
         {
-            Image image = Box(ui, name, new Vector2(x, -18), new Vector2(530, 267), new Color(.28f, .2f, .08f));
-            Box(image.transform, "Inset", Vector2.zero, new Vector2(528, 265), new Color(.055f, .05f, .035f, .95f));
+            Vector2 cardPosition = new Vector2(x, -18);
+            Vector2 cardSize = new Vector2(530, 267);
+            Color cardBorderColor = new Color(.28f, .2f, .08f);
+            Image image = CreateBox(ui, name, cardPosition, cardSize, cardBorderColor);
+            Vector2 insetSize = new Vector2(528, 265);
+            Color insetColor = new Color(.055f, .05f, .035f, .95f);
+            CreateBox(image.transform, "Inset", Vector2.zero, insetSize, insetColor);
 
             var button = image.gameObject.AddComponent<Button>();
             button.targetGraphic = image;
@@ -339,13 +443,21 @@ namespace Assets._Project.Develop.Editor
             colors.pressedColor = new Color(1, .72f, .2f);
             colors.selectedColor = colors.normalColor;
             colors.disabledColor = new Color(.5f, .46f, .35f);
-            colors.colorMultiplier = 2;
-            colors.fadeDuration = .12f;
+            colors.colorMultiplier = CardColorMultiplier;
+            colors.fadeDuration = CardFadeDuration;
             button.colors = colors;
 
-            Label(image.transform, "Key", key, 0, 66, 440, 93, 70, Amber);
-            Label(image.transform, "Name", title, 0, -21, 470, 65, 27, Ivory, 4);
-            Label(image.transform, "Description", subtitle, 0, -87, 490, 38, 13, Muted, 1);
+            var keyBounds = new Rect(0, 66, 440, 93);
+            const float keyFontSize = 70;
+            CreateLabel(image.transform, "Key", key, keyBounds, keyFontSize, _amber);
+            var nameBounds = new Rect(0, -21, 470, 65);
+            const float nameFontSize = 27;
+            const float nameCharacterSpacing = 4;
+            CreateLabel(image.transform, "Name", title, nameBounds, nameFontSize, _ivory, nameCharacterSpacing);
+            var descriptionBounds = new Rect(0, -87, 490, 38);
+            const float descriptionFontSize = 13;
+            const float descriptionCharacterSpacing = 1;
+            CreateLabel(image.transform, "Description", subtitle, descriptionBounds, descriptionFontSize, _muted, descriptionCharacterSpacing);
 
             return button;
         }
@@ -353,10 +465,14 @@ namespace Assets._Project.Develop.Editor
         private static TMP_FontAsset GetOrCreateRussianFont()
         {
             TMP_FontAsset existing = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(RussianFontPath);
+
             if (existing != null)
             {
-                if (!existing.HasCharacters(RussianCharacterSet(), out List<char> missing))
-                    throw new InvalidOperationException("Existing Russian font asset is missing glyphs: " + new string(missing.ToArray()));
+                if (existing.HasCharacters(GetRussianCharacterSet(), out List<char> missing) == false)
+                    {
+                    string missingGlyphs = new string(missing.ToArray());
+                    throw new InvalidOperationException("Existing Russian font asset is missing glyphs: " + missingGlyphs);
+                }
 
                 return existing;
             }
@@ -369,13 +485,13 @@ namespace Assets._Project.Develop.Editor
             Directory.CreateDirectory(Root + "Fonts");
             AssetDatabase.Refresh();
 
-            TMP_FontAsset font = TMP_FontAsset.CreateFontAsset(source, 72, 8, GlyphRenderMode.SDFAA, 1024, 1024,
+            TMP_FontAsset font = TMP_FontAsset.CreateFontAsset(source, FontSamplingSize, FontAtlasPadding, GlyphRenderMode.SDFAA, FontAtlasSize, FontAtlasSize,
                 AtlasPopulationMode.Dynamic, false);
 
             if (font == null)
                 throw new InvalidOperationException("Could not create TMP font asset from " + SourceFontPath);
 
-            if (!font.TryAddCharacters(RussianCharacterSet(), out string missingCharacters, true))
+            if (font.TryAddCharacters(GetRussianCharacterSet(), out string missingCharacters, true) == false)
             {
                 UnityEngine.Object.DestroyImmediate(font);
                 throw new InvalidOperationException("LiberationSans does not contain required glyphs: " + missingCharacters);
@@ -394,7 +510,7 @@ namespace Assets._Project.Develop.Editor
             return font;
         }
 
-        private static string RussianCharacterSet()
+        private static string GetRussianCharacterSet()
         {
             var characters = new System.Text.StringBuilder();
 
@@ -438,16 +554,18 @@ namespace Assets._Project.Develop.Editor
                 throw new InvalidOperationException("Refusing to overwrite existing screen prefab: " + prefabPath);
             }
 
-            if (!string.IsNullOrEmpty(connectedPrefabPath))
+            if (string.IsNullOrEmpty(connectedPrefabPath) == false)
                 throw new InvalidOperationException("TerminalCanvas is already connected to a different prefab: " + connectedPrefabPath);
 
             GameObject connected = PrefabUtility.SaveAsPrefabAssetAndConnect(
                 screen, prefabPath, InteractionMode.AutomatedAction, out bool success);
-            if (!success || connected == null || PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(connected) != prefabPath)
+
+            if (success == false || connected == null || PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(connected) != prefabPath)
                 throw new InvalidOperationException("Could not create and connect screen prefab: " + prefabPath);
 
             EditorSceneManager.MarkSceneDirty(scene);
-            if (!EditorSceneManager.SaveScene(scene))
+
+            if (EditorSceneManager.SaveScene(scene) == false)
                 throw new InvalidOperationException("Could not save migrated scene: " + scenePath);
         }
 
@@ -487,7 +605,8 @@ namespace Assets._Project.Develop.Editor
 
             GameObject connected = PrefabUtility.SaveAsPrefabAssetAndConnect(
                 screen.gameObject, prefabPath, InteractionMode.AutomatedAction, out bool success);
-            if (!success || connected == null)
+
+            if (success == false || connected == null)
                 throw new InvalidOperationException("Could not author screen prefab: " + prefabPath);
         }
 
@@ -548,7 +667,7 @@ namespace Assets._Project.Develop.Editor
                 translated = label.text == "DIGITS" ? "ЦИФРЫ" : label.text == "LETTERS" ? "БУКВЫ" : label.text;
             else if (label.name == "Description")
                 translated = label.text.Contains("0–9") ? "ЧИСЛОВОЙ КАНАЛ  /  0–9" : label.text.Contains("A–Z") ? "БУКВЕННЫЙ КАНАЛ  /  A–Z" : label.text;
-            else if (label.name == "Protocol" && !isMenu)
+            else if (label.name == "Protocol" && isMenu == false)
                 translated = "ЦИФРОВОЙ ПРОТОКОЛ";
             else if (label.name == "State")
             {
@@ -561,7 +680,7 @@ namespace Assets._Project.Develop.Editor
                 else
                     translated = label.text;
             }
-            else if (!RussianLabels.TryGetValue(label.name, out translated))
+            else if (_russianLabels.TryGetValue(label.name, out translated) == false)
             {
                 translated = label.text;
             }
@@ -588,54 +707,91 @@ namespace Assets._Project.Develop.Editor
             switch (label.name)
             {
                 case "Loading":
-                    size = 28;
-                    spacing = 2;
+                    const float loadingFontSize = 28;
+                    const float loadingCharacterSpacing = 2;
+                    size = loadingFontSize;
+                    spacing = loadingCharacterSpacing;
                     break;
+
                 case "Title":
-                    size = 38;
-                    spacing = 5;
+                    const float titleFontSize = 38;
+                    const float titleCharacterSpacing = 5;
+                    size = titleFontSize;
+                    spacing = titleCharacterSpacing;
                     break;
+
                 case "Protocol":
-                    size = 21;
-                    spacing = 3;
+                    const float protocolFontSize = 21;
+                    const float protocolCharacterSpacing = 3;
+                    size = protocolFontSize;
+                    spacing = protocolCharacterSpacing;
                     break;
+
                 case "Series":
+
                 case "Status":
+
                 case "Footer":
-                    size = 12;
-                    spacing = 1;
+                    const float footerFontSize = 12;
+                    const float footerCharacterSpacing = 1;
+                    size = footerFontSize;
+                    spacing = footerCharacterSpacing;
                     break;
+
                 case "Instructions":
-                    size = 18;
-                    spacing = 1;
+                    const float instructionsFontSize = 18;
+                    const float instructionsCharacterSpacing = 1;
+                    size = instructionsFontSize;
+                    spacing = instructionsCharacterSpacing;
                     break;
+
                 case "InputHint":
-                    size = 18;
-                    spacing = 2;
+                    const float inputHintFontSize = 18;
+                    const float inputHintCharacterSpacing = 2;
+                    size = inputHintFontSize;
+                    spacing = inputHintCharacterSpacing;
                     break;
+
                 case "Name":
-                    size = 27;
-                    spacing = 4;
+                    const float nameFontSize = 27;
+                    const float nameCharacterSpacing = 4;
+                    size = nameFontSize;
+                    spacing = nameCharacterSpacing;
                     break;
+
                 case "Description":
-                    size = 13;
-                    spacing = 1;
+                    const float descriptionFontSize = 13;
+                    const float descriptionCharacterSpacing = 1;
+                    size = descriptionFontSize;
+                    spacing = descriptionCharacterSpacing;
                     break;
+
                 case "Progress":
-                    size = 21;
-                    spacing = 3;
+                    const float progressFontSize = 21;
+                    const float progressCharacterSpacing = 3;
+                    size = progressFontSize;
+                    spacing = progressCharacterSpacing;
                     break;
+
                 case "Outcome":
-                    size = 28;
-                    spacing = 3;
+                    const float outcomeFontSize = 28;
+                    const float outcomeCharacterSpacing = 3;
+                    size = outcomeFontSize;
+                    spacing = outcomeCharacterSpacing;
                     break;
+
                 case "Hint":
-                    size = 19;
-                    spacing = 2;
+                    const float hintFontSize = 19;
+                    const float hintCharacterSpacing = 2;
+                    size = hintFontSize;
+                    spacing = hintCharacterSpacing;
                     break;
+
                 case "State":
-                    size = 11;
-                    spacing = 0;
+                    const float stateFontSize = 11;
+                    const float stateCharacterSpacing = 0;
+                    size = stateFontSize;
+                    spacing = stateCharacterSpacing;
                     break;
             }
 
@@ -667,9 +823,9 @@ namespace Assets._Project.Develop.Editor
             cameraObject.SetActive(true);
             camera.enabled = true;
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = LoadingBackground;
+            camera.backgroundColor = _loadingBackground;
             camera.cullingMask = 0;
-            camera.depth = -100;
+            camera.depth = LoadingCameraDepth;
             camera.targetDisplay = 0;
             camera.allowHDR = false;
             camera.allowMSAA = false;
@@ -678,56 +834,62 @@ namespace Assets._Project.Develop.Editor
             EditorUtility.SetDirty(camera);
         }
 
-        private static void Seal(Transform parent, Vector2 position)
+        private static void CreateSeal(Transform parent, Vector2 position)
         {
-            RectTransform root = Rect(parent, "CipherSeal", position.x, position.y, 100, 100);
+            float cipherSealWidth = 100;
+            float cipherSealHeight = 100;
+            RectTransform root = CreateRect(parent, "CipherSeal", position.x, position.y, cipherSealWidth, cipherSealHeight);
 
-            for (int i = 0; i < 48; i++)
+            for (int i = 0; i < RingSegmentCount; i++)
             {
-                float a = i * Mathf.PI * 2 / 48;
-                float b = (i + 1) * Mathf.PI * 2 / 48;
-                Line(root, "Ring", Mathf.Cos(a) * 42, Mathf.Sin(a) * 42, Mathf.Cos(b) * 42, Mathf.Sin(b) * 42, Amber);
+                float startAngle = i * RadiansPerTurn / RingSegmentCount;
+                float endAngle = (i + NextSegmentOffset) * RadiansPerTurn / RingSegmentCount;
+                CreateLine(root, "Ring", Mathf.Cos(startAngle) * RingRadius, Mathf.Sin(startAngle) * RingRadius, Mathf.Cos(endAngle) * RingRadius, Mathf.Sin(endAngle) * RingRadius, _amber);
             }
 
-            Line(root, "Triangle", 0, 40, -35, -23, Amber);
-            Line(root, "Triangle", -35, -23, 35, -23, Amber);
-            Line(root, "Triangle", 35, -23, 0, 40, Amber);
-            Box(root, "Center", Vector2.zero, new Vector2(7, 7), Amber);
+            Vector2 triangleTop = new Vector2(0, 40);
+            Vector2 triangleLeft = new Vector2(-35, -23);
+            Vector2 triangleRight = new Vector2(35, -23);
+            CreateLine(root, "Triangle", triangleTop.x, triangleTop.y, triangleLeft.x, triangleLeft.y, _amber);
+            CreateLine(root, "Triangle", triangleLeft.x, triangleLeft.y, triangleRight.x, triangleRight.y, _amber);
+            CreateLine(root, "Triangle", triangleRight.x, triangleRight.y, triangleTop.x, triangleTop.y, _amber);
+            Vector2 centerSize = new Vector2(7, 7);
+            CreateBox(root, "Center", Vector2.zero, centerSize, _amber);
         }
 
-        private static RectTransform Canvas(string name, Vector2 resolution, int order)
+        private static RectTransform CreateCanvas(string name, Vector2 resolution, int order)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            var createdObject = new GameObject(name, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
 
-            Canvas canvas = go.GetComponent<Canvas>();
+            Canvas canvas = createdObject.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = order;
 
-            CanvasScaler scaler = go.GetComponent<CanvasScaler>();
+            CanvasScaler scaler = createdObject.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = resolution;
-            scaler.screenMatchMode = order == 1000 ? CanvasScaler.ScreenMatchMode.MatchWidthOrHeight : CanvasScaler.ScreenMatchMode.Expand;
-            scaler.matchWidthOrHeight = .5f;
+            scaler.screenMatchMode = order == LoadingSortOrder ? CanvasScaler.ScreenMatchMode.MatchWidthOrHeight : CanvasScaler.ScreenMatchMode.Expand;
+            scaler.matchWidthOrHeight = CenterFraction;
 
-            return (RectTransform)go.transform;
+            return (RectTransform)createdObject.transform;
         }
 
-        private static RectTransform Rect(Transform parent, string name, float x, float y, float w, float h)
+        private static RectTransform CreateRect(Transform parent, string name, float x, float y, float width, float height)
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
+            var createdObject = new GameObject(name, typeof(RectTransform));
+            createdObject.transform.SetParent(parent, false);
 
-            var rect = (RectTransform)go.transform;
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, .5f);
+            var rect = (RectTransform)createdObject.transform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(CenterFraction, CenterFraction);
             rect.anchoredPosition = new Vector2(x, y);
-            rect.sizeDelta = new Vector2(w, h);
+            rect.sizeDelta = new Vector2(width, height);
 
             return rect;
         }
 
-        private static Image Box(Transform parent, string name, Vector2 position, Vector2 size, Color color)
+        private static Image CreateBox(Transform parent, string name, Vector2 position, Vector2 size, Color color)
         {
-            var rect = Rect(parent, name, position.x, position.y, size.x, size.y);
+            var rect = CreateRect(parent, name, position.x, position.y, size.x, size.y);
             var image = rect.gameObject.AddComponent<Image>();
             image.color = color;
             image.raycastTarget = false;
@@ -735,9 +897,9 @@ namespace Assets._Project.Develop.Editor
             return image;
         }
 
-        private static TMP_Text Label(Transform parent, string name, string text, float x, float y, float w, float h, float size, Color color, float spacing = 0)
+        private static TMP_Text CreateLabel(Transform parent, string name, string text, Rect bounds, float size, Color color, float spacing = 0)
         {
-            var rect = Rect(parent, name, x, y, w, h);
+            var rect = CreateRect(parent, name, bounds.x, bounds.y, bounds.width, bounds.height);
             var label = rect.gameObject.AddComponent<TextMeshProUGUI>();
             label.font = _font;
             label.text = text;
@@ -752,36 +914,36 @@ namespace Assets._Project.Develop.Editor
             return label;
         }
 
-        private static void Line(Transform parent, string name, float x1, float y1, float x2, float y2, Color color)
+        private static void CreateLine(Transform parent, string name, float x1, float y1, float x2, float y2, Color color)
         {
             var delta = new Vector2(x2 - x1, y2 - y1);
-            var image = Box(parent, name, new Vector2((x1 + x2) / 2, (y1 + y2) / 2), new Vector2(delta.magnitude, 1.6f), color);
+            var image = CreateBox(parent, name, new Vector2((x1 + x2) * CenterFraction, (y1 + y2) * CenterFraction), new Vector2(delta.magnitude, LineThickness), color);
             image.rectTransform.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
         }
 
-        private static void Set(UnityEngine.Object target, string field, UnityEngine.Object value)
+        private static void SetObjectReference(UnityEngine.Object target, string field, UnityEngine.Object value)
         {
             var serialized = new SerializedObject(target);
             serialized.FindProperty(field).objectReferenceValue = value;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void Camera()
+        private static void CreateCamera()
         {
-            var go = new GameObject("Main Camera");
-            go.tag = "MainCamera";
+            var createdObject = new GameObject("Main Camera");
+            createdObject.tag = "MainCamera";
 
-            var camera = go.AddComponent<UnityEngine.Camera>();
+            var camera = createdObject.AddComponent<UnityEngine.Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(.04f, .04f, .03f);
         }
 
-        private static void NewScene()
+        private static void CreateScene()
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         }
 
-        private static void Save(string name)
+        private static void SaveScene(string name)
         {
             EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), Root + "Scenes/" + name + ".unity");
         }

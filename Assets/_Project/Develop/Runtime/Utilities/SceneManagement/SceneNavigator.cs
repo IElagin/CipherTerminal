@@ -8,27 +8,27 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
     {
         private readonly SceneSwitcherService _switcher;
 
-        public bool IsLeaving { get; private set; }
-
         public SceneNavigator(SceneSwitcherService switcher)
         {
             _switcher = switcher;
         }
 
-        public void Go(string scene, IInputSceneArgs args = null, Action onFailed = null)
+        public bool IsLeaving { get; private set; }
+
+        public void Go(string sceneName, IInputSceneArgs sceneArgs = null, Action onFailed = null)
         {
             if (IsLeaving)
                 return;
 
             IsLeaving = true;
-            GoAsync(scene, args, onFailed).Forget(AsyncErrors.Report);
+            GoAsync(sceneName, sceneArgs, onFailed).Forget(AsyncErrors.Report);
         }
 
-        private async UniTask GoAsync(string scene, IInputSceneArgs args, Action onFailed)
+        private async UniTask GoAsync(string sceneName, IInputSceneArgs sceneArgs, Action onFailed)
         {
             try
             {
-                await _switcher.SwitchAsync(scene, args);
+                await _switcher.SwitchAsync(sceneName, sceneArgs);
             }
             catch
             {

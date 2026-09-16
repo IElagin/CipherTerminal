@@ -15,6 +15,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataRepository
         {
             if (string.IsNullOrWhiteSpace(folderPath))
                 throw new ArgumentException("Save folder is required", nameof(folderPath));
+
             if (string.IsNullOrWhiteSpace(extension))
                 throw new ArgumentException("Save extension is required", nameof(extension));
 
@@ -25,7 +26,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataRepository
         public UniTask<string> ReadAsync(string key, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return UniTask.FromResult(File.ReadAllText(PathFor(key), Encoding.UTF8));
+            return UniTask.FromResult(File.ReadAllText(GetPath(key), Encoding.UTF8));
         }
 
         public UniTask WriteAsync(string key, string serializedData, CancellationToken cancellationToken = default)
@@ -33,7 +34,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataRepository
             cancellationToken.ThrowIfCancellationRequested();
             Directory.CreateDirectory(_folderPath);
 
-            string destination = PathFor(key);
+            string destination = GetPath(key);
             string temporary = destination + ".tmp-" + Guid.NewGuid().ToString("N");
 
             try
@@ -58,10 +59,10 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataRepository
         public UniTask<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return UniTask.FromResult(File.Exists(PathFor(key)));
+            return UniTask.FromResult(File.Exists(GetPath(key)));
         }
 
-        private string PathFor(string key)
+        private string GetPath(string key)
         {
             if (string.IsNullOrWhiteSpace(key) || key.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
                 key.Contains(Path.DirectorySeparatorChar.ToString()) ||

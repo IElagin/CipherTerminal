@@ -14,23 +14,23 @@ namespace Assets._Project.Develop.Runtime.Meta.Infrastructure
     {
         [SerializeField] private MainMenuController _controller;
 
-        private IObjectResolver _container;
+        public override UniTask Initialize(IObjectResolver container, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            SceneNavigator navigator = container.Resolve<SceneNavigator>();
+            IAudioService audio = container.Resolve<IAudioService>();
+            PlayerProgressService progress = container.Resolve<PlayerProgressService>();
+            MainMenuController controller = container.Resolve<MainMenuController>();
+
+            controller.Initialize(navigator, audio, progress);
+
+            return UniTask.CompletedTask;
+        }
 
         public override void ProcessRegistrations(IContainerBuilder builder, IInputSceneArgs sceneArgs = null)
         {
-            MainMenuContextRegistrations.Process(builder);
-            builder.Register(_ => _controller, Lifetime.Scoped);
-        }
-
-        public override UniTask InitializeAsync(IObjectResolver container, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            _container = container;
-            SceneNavigator navigator = _container.Resolve<SceneNavigator>();
-            MainMenuController controller = _container.Resolve<MainMenuController>();
-            controller.Configure(navigator, _container.Resolve<IAudioService>(),
-                _container.Resolve<PlayerProgressService>());
-            return UniTask.CompletedTask;
+            MainMenuContextRegistrations.Process(builder, _controller);
         }
 
         public override void Run()

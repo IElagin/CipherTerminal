@@ -7,7 +7,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Configs
     [CreateAssetMenu(menuName = "Cipher Terminal/Sequence Config")]
     public sealed class SequenceConfig : ScriptableObject
     {
-        [SerializeField, Range(1, 12)] private int _length = 6;
+        [SerializeField, Range(SequenceGenerator.MinimumLength, SequenceGenerator.MaximumLength)]
+        private int _length = 6;
         [SerializeField] private ModeSymbols[] _modes =
         {
             new ModeSymbols(SequenceMode.Digits, "0123456789"),
@@ -18,12 +19,13 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Configs
 
         public string GetSymbols(SequenceMode mode)
         {
-            if (_length < 1 || _length > 12)
-                throw new InvalidOperationException("Sequence length must be 1–12");
+            if (_length < SequenceGenerator.MinimumLength || _length > SequenceGenerator.MaximumLength)
+                throw new InvalidOperationException("Sequence length must be " +
+                    SequenceGenerator.MinimumLength + "–" + SequenceGenerator.MaximumLength);
 
             foreach (ModeSymbols entry in _modes)
             {
-                if (entry.Mode == mode && !string.IsNullOrWhiteSpace(entry.Symbols))
+                if (entry.Mode == mode && string.IsNullOrWhiteSpace(entry.Symbols) == false)
                     return entry.Symbols;
             }
 

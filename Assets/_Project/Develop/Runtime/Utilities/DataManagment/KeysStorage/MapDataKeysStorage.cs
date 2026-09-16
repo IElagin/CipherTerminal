@@ -12,7 +12,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.KeysStorage
 
         public string GetKeyFor<TData>() where TData : class, ISaveData
         {
-            if (!_keys.TryGetValue(typeof(TData), out string key))
+            if (_keys.TryGetValue(typeof(TData), out string key) == false)
                 throw new InvalidOperationException("No save key for " + typeof(TData));
 
             return key;

@@ -10,13 +10,13 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Configs
         [SerializeField] private SequenceMode _mode;
         [SerializeField] private string _symbols;
 
-        public SequenceMode Mode => _mode;
-        public string Symbols => _symbols;
-
         public ModeSymbols(SequenceMode mode, string symbols)
         {
             _mode = mode;
             _symbols = symbols;
         }
+
+        public SequenceMode Mode => _mode;
+        public string Symbols => _symbols;
     }
 }

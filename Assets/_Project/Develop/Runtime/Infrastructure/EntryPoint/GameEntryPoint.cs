@@ -21,22 +21,7 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
         private AudioService _audioService;
         private SceneSwitcherService _sceneSwitcher;
 
-        private void Awake()
-        {
-            if (_instance != null && _instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            _instance = this;
-            DontDestroyOnLoad(gameObject);
-
-            _projectLifetime = new CancellationTokenSource();
-            InitializeAsync(_projectLifetime.Token).Forget(AsyncErrors.Report);
-        }
-
-        private async UniTask InitializeAsync(CancellationToken cancellationToken)
+        public async UniTask Initialize(CancellationToken cancellationToken)
         {
             try
             {
@@ -45,10 +30,12 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
 
                 StandardLoadingScreen loadingPrefab =
                     Resources.Load<StandardLoadingScreen>("Utilities/StandardLoadingScreen");
+
                 if (loadingPrefab == null)
                     throw new InvalidOperationException("Loading screen prefab not found");
 
                 AudioService audioPrefab = Resources.Load<AudioService>("Utilities/AudioService");
+
                 if (audioPrefab == null)
                     throw new InvalidOperationException("Audio service prefab not found");
 
@@ -69,7 +56,7 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
                 cancellationToken.ThrowIfCancellationRequested();
 
                 PlayerProgressService progress = _projectContainer.Resolve<PlayerProgressService>();
-                await progress.InitializeAsync(cancellationToken);
+                await progress.Initialize(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 Debug.Log("Project services initialized");
 
@@ -85,6 +72,21 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
                 if (_loadingScreen != null)
                     _loadingScreen.Hide();
             }
+        }
+
+        private void Awake()
+        {
+            if (_instance != null && _instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            _instance = this;
+            DontDestroyOnLoad(gameObject);
+
+            _projectLifetime = new CancellationTokenSource();
+            Initialize(_projectLifetime.Token).Forget(AsyncErrors.Report);
         }
 
         private void OnDestroy()
@@ -111,16 +113,20 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
 
             if (_audioService != null)
                 Destroy(_audioService.gameObject);
+
             _audioService = null;
 
             if (_loadingScreen != null)
                 Destroy(_loadingScreen.gameObject);
+
             _loadingScreen = null;
         }
 
         private void SetupAppSettings()
         {
             const int targetFrameRate = 60;
+            const int minimumVSyncCount = 1;
+            const int maximumVSyncCount = 4;
 
             Application.targetFrameRate = targetFrameRate;
             Application.runInBackground = false;
@@ -129,7 +135,7 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
             // Game View VSync must also be enabled in the Editor window.
             int refreshRate = Mathf.RoundToInt((float)Screen.currentResolution.refreshRateRatio.value);
             QualitySettings.vSyncCount = Mathf.Clamp(
-                Mathf.CeilToInt(refreshRate / (float)targetFrameRate), 1, 4);
+                Mathf.CeilToInt(refreshRate / (float)targetFrameRate), minimumVSyncCount, maximumVSyncCount);
 #else
             QualitySettings.vSyncCount = 0;
 #endif

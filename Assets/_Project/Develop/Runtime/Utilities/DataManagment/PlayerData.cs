@@ -7,18 +7,6 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment
     {
         public const int CurrentSchemaVersion = 1;
 
-        [JsonProperty("schemaVersion", Required = Required.Always)]
-        public int SchemaVersion { get; set; }
-
-        [JsonProperty("gold", Required = Required.Always)]
-        public int Gold { get; set; }
-
-        [JsonProperty("wins", Required = Required.Always)]
-        public int Wins { get; set; }
-
-        [JsonProperty("losses", Required = Required.Always)]
-        public int Losses { get; set; }
-
         public PlayerData()
         {
             SchemaVersion = CurrentSchemaVersion;
@@ -31,6 +19,18 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment
             Wins = wins;
             Losses = losses;
         }
+
+        [JsonProperty("schemaVersion", Required = Required.Always)]
+        public int SchemaVersion { get; set; }
+
+        [JsonProperty("gold", Required = Required.Always)]
+        public int Gold { get; set; }
+
+        [JsonProperty("wins", Required = Required.Always)]
+        public int Wins { get; set; }
+
+        [JsonProperty("losses", Required = Required.Always)]
+        public int Losses { get; set; }
 
         public void Validate()
         {

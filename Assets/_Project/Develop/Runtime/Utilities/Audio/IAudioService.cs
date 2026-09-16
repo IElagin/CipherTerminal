@@ -2,7 +2,8 @@ namespace Assets._Project.Develop.Runtime.Utilities.Audio
 {
     public interface IAudioService
     {
-        void Initialize(AudioCatalog catalog);
-        void Play(AudioCue cue);
+        public void Initialize(AudioCatalog catalog);
+
+        public void Play(AudioCue cue);
     }
 }

@@ -22,6 +22,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.ConfigsManagement
             foreach (IConfigsLoader loader in _loaders)
             {
                 Dictionary<Type, object> configs = await loader.LoadAsync(cancellationToken);
+
                 foreach (KeyValuePair<Type, object> config in configs)
                     loaded.Add(config.Key, config.Value);
             }

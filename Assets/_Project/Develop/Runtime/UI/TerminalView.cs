@@ -7,6 +7,27 @@ namespace Assets._Project.Develop.Runtime.UI
 {
     public sealed class TerminalView : MonoBehaviour
     {
+        private const float MaximumCellWidth = 190f;
+        private const float AvailableRowWidth = 1280f;
+        private const float CellSpacing = 18f;
+        private const float CellHeight = 215f;
+        private const float CenterFraction = .5f;
+        private const float CursorVerticalOffset = -92f;
+        private const float RowVerticalOffset = -5f;
+        private const float PulseDuration = .28f;
+        private const float ErrorPulseOpacity = .10f;
+        private const float InputPulseOpacity = .045f;
+        private const float ShakeDuration = .25f;
+        private const float ShakeFrequency = 90f;
+        private const float ShakeAmplitude = 5f;
+        private const float SweepDuration = .55f;
+        private const float SweepHalfWidth = 640f;
+        private const float CursorBaseOpacity = .55f;
+        private const float CursorOpacityAmplitude = .45f;
+        private const float CursorPulseFrequency = 4f;
+        private const float FullOpacity = 1f;
+        private const int TrailingGapCount = 1;
+
         public static readonly Color Amber = new Color(1f, .69f, .23f);
         public static readonly Color Ivory = new Color(.91f, .86f, .73f);
         public static readonly Color Error = new Color(1f, .35f, .2f);
@@ -42,20 +63,21 @@ namespace Assets._Project.Develop.Runtime.UI
             _protocol.text = mode == SequenceMode.Digits ? "ЦИФРОВОЙ ПРОТОКОЛ" : "БУКВЕННЫЙ ПРОТОКОЛ";
             _progress.text = session.Progress + " / " + session.Target.Length + "  ПРОВЕРЕНО";
 
-            float cellWidth = Mathf.Min(190f, (1280f - (session.Target.Length - 1) * 18f) / session.Target.Length);
-            float total = session.Target.Length * (cellWidth + 18f) - 18f;
+            float cellWidth = Mathf.Min(MaximumCellWidth,
+                (AvailableRowWidth - (session.Target.Length - TrailingGapCount) * CellSpacing) / session.Target.Length);
+            float totalWidth = session.Target.Length * (cellWidth + CellSpacing) - CellSpacing;
 
             for (int i = 0; i < _cells.Length; i++)
             {
                 bool visible = i < session.Target.Length;
                 _cells[i].gameObject.SetActive(visible);
 
-                if (!visible)
+                if (visible == false)
                     continue;
 
                 RectTransform rect = (RectTransform)_cells[i].transform;
-                rect.sizeDelta = new Vector2(cellWidth, 215);
-                rect.anchoredPosition = new Vector2(-total / 2 + cellWidth / 2 + i * (cellWidth + 18f), 0);
+                rect.sizeDelta = new Vector2(cellWidth, CellHeight);
+                rect.anchoredPosition = new Vector2(GetCellPosition(i, cellWidth, totalWidth), 0);
                 _cells[i].Show(session.Target[i], i, session);
             }
 
@@ -67,7 +89,8 @@ namespace Assets._Project.Develop.Runtime.UI
             _cursor.gameObject.SetActive(input);
 
             if (input)
-                _cursor.rectTransform.anchoredPosition = new Vector2(-total / 2 + cellWidth / 2 + session.Progress * (cellWidth + 18f), -92);
+                _cursor.rectTransform.anchoredPosition = new Vector2(
+                    GetCellPosition(session.Progress, cellWidth, totalWidth), CursorVerticalOffset);
         }
 
         public void Pulse(bool error)
@@ -83,27 +106,36 @@ namespace Assets._Project.Develop.Runtime.UI
 
             float age = Time.unscaledTime - _pulseStart;
             Color color = _error ? Error : Amber;
-            color.a = Mathf.Max(0, 1 - age / .28f) * (_error ? .10f : .045f);
+            color.a = Mathf.Max(0, FullOpacity - age / PulseDuration) * (_error ? ErrorPulseOpacity : InputPulseOpacity);
             _pulse.color = color;
 
             if (_cellRow != null)
-                _cellRow.anchoredPosition = new Vector2(_error && age < .25f ? Mathf.Sin(age * 90) * 5 * (1 - age / .25f) : 0, -5);
+            {
+                float horizontalShake = _error && age < ShakeDuration
+                    ? Mathf.Sin(age * ShakeFrequency) * ShakeAmplitude * (FullOpacity - age / ShakeDuration)
+                    : 0;
+                _cellRow.anchoredPosition = new Vector2(horizontalShake, RowVerticalOffset);
+            }
 
             if (_sweep != null)
             {
-                bool sweeping = _state == SequenceState.Won && age >= 0 && age < .55f;
+                bool sweeping = _state == SequenceState.Won && age >= 0 && age < SweepDuration;
                 _sweep.gameObject.SetActive(sweeping);
 
                 if (sweeping)
-                    _sweep.rectTransform.anchoredPosition = new Vector2(Mathf.Lerp(-640, 640, age / .55f), 0);
+                    _sweep.rectTransform.anchoredPosition = new Vector2(
+                        Mathf.Lerp(-SweepHalfWidth, SweepHalfWidth, age / SweepDuration), 0);
             }
 
             if (_cursor != null)
             {
                 Color cursor = Amber;
-                cursor.a = .55f + .45f * Mathf.Sin(Time.unscaledTime * 4);
+                cursor.a = CursorBaseOpacity + CursorOpacityAmplitude * Mathf.Sin(Time.unscaledTime * CursorPulseFrequency);
                 _cursor.color = cursor;
             }
         }
+
+        private static float GetCellPosition(int index, float cellWidth, float totalWidth)
+            => -totalWidth * CenterFraction + cellWidth * CenterFraction + index * (cellWidth + CellSpacing);
     }
 }

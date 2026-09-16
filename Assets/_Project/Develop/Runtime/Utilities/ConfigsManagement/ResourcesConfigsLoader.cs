@@ -29,6 +29,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.ConfigsManagement
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 ScriptableObject config = _resources.Load<ScriptableObject>(configResourcesPath.Value);
+
                 if (config == null)
                     throw new InvalidOperationException($"Missing config: {configResourcesPath.Value}");
 

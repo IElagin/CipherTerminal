@@ -26,6 +26,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders
 
             if (reader == null)
                 throw new ArgumentNullException(nameof(reader));
+
             if (_readers.Contains(reader))
                 throw new ArgumentException("Reader already registered", nameof(reader));
 
@@ -38,6 +39,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders
 
             if (writer == null)
                 throw new ArgumentNullException(nameof(writer));
+
             if (_writers.Contains(writer))
                 throw new ArgumentException("Writer already registered", nameof(writer));
 
@@ -129,6 +131,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders
         }
 
         protected abstract TData CreateOriginData();
+
         protected abstract void Validate(TData data);
 
         private void SendToReaders()
@@ -147,6 +150,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().Name);
+
             if (_busy)
                 throw new InvalidOperationException("A data operation is already running");
         }

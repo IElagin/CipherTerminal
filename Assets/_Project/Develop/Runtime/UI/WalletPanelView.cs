@@ -6,6 +6,8 @@ namespace Assets._Project.Develop.Runtime.UI
 {
     public sealed class WalletPanelView : MonoBehaviour
     {
+        private const float ExpandedChevronAngle = 180f;
+
         [SerializeField] private TMP_Text _gold;
         [SerializeField] private TMP_Text _wins;
         [SerializeField] private TMP_Text _losses;
@@ -31,7 +33,7 @@ namespace Assets._Project.Develop.Runtime.UI
         public void SetExpanded(bool expanded)
         {
             _expandedRoot.SetActive(expanded);
-            _chevron.localRotation = Quaternion.Euler(0f, 0f, expanded ? 180f : 0f);
+            _chevron.localRotation = Quaternion.Euler(0f, 0f, expanded ? ExpandedChevronAngle : 0f);
         }
 
         public void SetInteractable(bool interactable)

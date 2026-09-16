@@ -9,6 +9,8 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
 {
     public sealed class PlayerProgressService : IDisposable
     {
+        private const int ResultCountIncrement = 1;
+
         public const string LoadErrorMessage =
             "Не удалось загрузить прогресс. Сохранённые данные не изменены.";
 
@@ -28,22 +30,6 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
 
         public event Action<ProgressSnapshot> Changed;
 
-        public bool IsReady { get; private set; }
-        public bool IsBusy { get; private set; }
-        public string Error { get; private set; }
-        public int StatisticsResetCost => _rules.StatisticsResetCost;
-
-        public ProgressSnapshot Snapshot
-        {
-            get
-            {
-                if (!IsReady)
-                    throw new InvalidOperationException("Player progress is unavailable");
-
-                return CurrentSnapshot();
-            }
-        }
-
         public PlayerProgressService(PlayerDataProvider provider, WalletService wallet,
             StatisticsService statistics, EconomyRules rules, CancellationToken projectToken)
         {
@@ -59,7 +45,23 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             _provider.RegisterWriter(_statistics);
         }
 
-        public async UniTask InitializeAsync(CancellationToken cancellationToken = default)
+        public bool IsReady { get; private set; }
+        public bool IsBusy { get; private set; }
+        public string Error { get; private set; }
+        public int StatisticsResetCost => _rules.StatisticsResetCost;
+
+        public ProgressSnapshot Snapshot
+        {
+            get
+            {
+                if (IsReady == false)
+                    throw new InvalidOperationException("Player progress is unavailable");
+
+                return CreateSnapshot();
+            }
+        }
+
+        public async UniTask Initialize(CancellationToken cancellationToken = default)
         {
             EnsureNotDisposed();
 
@@ -106,7 +108,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             }
 
             if (publish)
-                Changed?.Invoke(CurrentSnapshot());
+                Changed?.Invoke(CreateSnapshot());
         }
 
         public async UniTask<ProgressOperationResult> RecordResultAsync(SequenceState state)
@@ -116,8 +118,9 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             if (state != SequenceState.Won && state != SequenceState.Lost)
                 throw new ArgumentOutOfRangeException(nameof(state), state, "A terminal result is required");
 
-            if (!IsReady)
+            if (IsReady == false)
                 return new ProgressOperationResult(ProgressOperationStatus.Unavailable);
+
             if (IsBusy)
                 return new ProgressOperationResult(ProgressOperationStatus.Busy);
 
@@ -137,8 +140,8 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
                     gold = state == SequenceState.Won
                         ? _wallet.Gold + _rules.WinReward
                         : Math.Max(0, _wallet.Gold - _rules.LossPenalty);
-                    wins = _statistics.Wins + (state == SequenceState.Won ? 1 : 0);
-                    losses = _statistics.Losses + (state == SequenceState.Lost ? 1 : 0);
+                    wins = _statistics.Wins + (state == SequenceState.Won ? ResultCountIncrement : 0);
+                    losses = _statistics.Losses + (state == SequenceState.Lost ? ResultCountIncrement : 0);
                 }
 
                 int delta = gold - _wallet.Gold;
@@ -161,7 +164,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             }
 
             if (publish)
-                Changed?.Invoke(CurrentSnapshot());
+                Changed?.Invoke(CreateSnapshot());
 
             return result;
         }
@@ -170,8 +173,9 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
         {
             EnsureNotDisposed();
 
-            if (!IsReady)
+            if (IsReady == false)
                 return new ProgressOperationResult(ProgressOperationStatus.Unavailable);
+
             if (IsBusy)
                 return new ProgressOperationResult(ProgressOperationStatus.Busy);
 
@@ -198,7 +202,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             }
 
             if (publish)
-                Changed?.Invoke(CurrentSnapshot());
+                Changed?.Invoke(CreateSnapshot());
 
             return result;
         }
@@ -235,7 +239,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             }
         }
 
-        private ProgressSnapshot CurrentSnapshot()
+        private ProgressSnapshot CreateSnapshot()
             => new ProgressSnapshot(_wallet.Gold, _statistics.Wins, _statistics.Losses);
 
         private void EnsureNotDisposed()

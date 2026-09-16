@@ -27,19 +27,19 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
                 return;
 
             _subscribed = true;
-            _loop.Result += OnResult;
+            _loop.Finished += OnFinished;
         }
 
         public void Dispose()
         {
-            if (!_subscribed)
+            if (_subscribed == false)
                 return;
 
             _subscribed = false;
-            _loop.Result -= OnResult;
+            _loop.Finished -= OnFinished;
         }
 
-        private void OnResult(SequenceState state)
+        private void OnFinished(SequenceState state)
         {
             if (_recorded)
                 return;

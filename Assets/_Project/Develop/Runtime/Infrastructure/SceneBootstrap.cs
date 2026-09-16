@@ -7,8 +7,10 @@ namespace Assets._Project.Develop.Runtime.Infrastructure
 {
     public abstract class SceneBootstrap : MonoBehaviour
     {
+        public abstract UniTask Initialize(IObjectResolver container, CancellationToken cancellationToken);
+
         public abstract void ProcessRegistrations(IContainerBuilder builder, IInputSceneArgs sceneArgs = null);
-        public abstract UniTask InitializeAsync(IObjectResolver container, CancellationToken cancellationToken);
+
         public abstract void Run();
     }
 }

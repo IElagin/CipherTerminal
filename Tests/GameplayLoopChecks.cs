@@ -5,10 +5,18 @@ using Assets._Project.Develop.Runtime.Gameplay.Sequence;
 
 public static class GameplayLoopChecks
 {
-    private static int _passed;
+    private const int DefaultLevelNumber = 1;
+    private const int SingleEventCount = 1;
+    private const int TwoEventCount = 2;
+    private const int SingleCharacterProgress = 1;
+
+    private static int _passedCount;
 
     public static int Main()
     {
+        SessionInitializationIsExplicitAndRunsOnce();
+        UninitializedSessionCannotAcceptInputOrRun();
+        InvalidInitializationCanBeCorrected();
         RunDoesNotRepeatInitialUpdateOrResetProgress();
         InputSpaceLosesWithoutNavigatingUntilLaterSpace();
         LossRequestsSameModeRetryOnlyOnce();
@@ -23,58 +31,59 @@ public static class GameplayLoopChecks
         InputEvaluatedCallbacksCannotReenterSubmission();
         StopFromInputEvaluatedSuppressesLaterEvents();
 
-        Console.WriteLine("PASS " + _passed + " GameplayLoop checks");
+        Console.WriteLine("PASS " + _passedCount + " GameplayLoop checks");
         return 0;
     }
 
     private static void RunDoesNotRepeatInitialUpdateOrResetProgress()
     {
-        var loop = Create("12", SequenceMode.Digits);
-        int updates = 0;
-        loop.Updated += () => updates++;
+        var loop = CreateLoop("12", SequenceMode.Digits);
+        int updateCount = 0;
+        loop.Updated += () => updateCount++;
 
         loop.Run();
         loop.Submit('1');
         loop.Run();
 
-        Equal(2, updates, "Run emits one initial update and one accepted-input update");
-        Equal(1, loop.Session.Progress, "repeated Run preserves progress");
+        AssertEqual(TwoEventCount, updateCount, "Run emits one initial update and one accepted-input update");
+        AssertEqual(SingleCharacterProgress, loop.Session.Progress, "repeated Run preserves progress");
     }
 
     private static void InputSpaceLosesWithoutNavigatingUntilLaterSpace()
     {
-        var loop = Create("12", SequenceMode.Digits);
-        int results = 0;
-        int navigation = 0;
-        loop.Result += state =>
+        var loop = CreateLoop("12", SequenceMode.Digits);
+        int resultCount = 0;
+        int navigationRequestCount = 0;
+        loop.Finished += state =>
         {
-            Equal(SequenceState.Lost, state, "Space during input reports loss");
-            results++;
+            AssertEqual(SequenceState.Lost, state, "Space during input reports loss");
+            resultCount++;
         };
-        loop.NavigationRequested += request => navigation++;
+        loop.NavigationRequested += request => navigationRequestCount++;
 
         loop.Run();
         loop.Submit(' ');
 
-        Equal(SequenceState.Lost, loop.Session.State, "Space is submitted as game input");
-        Equal(1, results, "Space reports one result");
-        Equal(0, navigation, "the losing Space does not also retry");
+        AssertEqual(SequenceState.Lost, loop.Session.State, "Space is submitted as game input");
+        AssertEqual(SingleEventCount, resultCount, "Space reports one result");
+        AssertEqual(0, navigationRequestCount, "the losing Space does not also retry");
 
         loop.Submit(' ');
-        Equal(1, navigation, "a later Space requests retry");
+        AssertEqual(SingleEventCount, navigationRequestCount, "a later Space requests retry");
     }
 
     private static void LossRequestsSameModeRetryOnlyOnce()
     {
+        const int levelNumber = 7;
         var loop = new GameplayLoop(
-            new SequenceSession("AB"),
-            new GameplayInputArgs(7, SequenceMode.Letters));
-        GameplayNavigationRequest observed = null;
-        int navigation = 0;
+            CreateSession("AB"),
+            new GameplayInputArgs(levelNumber, SequenceMode.Letters));
+        GameplayNavigationRequest observedRequest = null;
+        int navigationRequestCount = 0;
         loop.NavigationRequested += request =>
         {
-            observed = request;
-            navigation++;
+            observedRequest = request;
+            navigationRequestCount++;
         };
 
         loop.Run();
@@ -83,27 +92,27 @@ public static class GameplayLoopChecks
         loop.Submit(' ');
         loop.Submit(' ');
 
-        Equal(1, navigation, "loss navigation is emitted once");
-        Equal(GameplayNavigationDestination.Retry, observed.Destination, "loss retries gameplay");
-        Equal(7, observed.LevelNumber, "retry preserves level");
-        Equal(SequenceMode.Letters, observed.Mode, "retry preserves letter mode");
+        AssertEqual(SingleEventCount, navigationRequestCount, "loss navigation is emitted once");
+        AssertEqual(GameplayNavigationDestination.Retry, observedRequest.Destination, "loss retries gameplay");
+        AssertEqual(levelNumber, observedRequest.LevelNumber, "retry preserves level");
+        AssertEqual(SequenceMode.Letters, observedRequest.Mode, "retry preserves letter mode");
     }
 
     private static void WinRequestsMenuOnlyOnce()
     {
-        var loop = Create("a", SequenceMode.Letters);
-        GameplayNavigationRequest observed = null;
-        int results = 0;
-        int navigation = 0;
-        loop.Result += state =>
+        var loop = CreateLoop("a", SequenceMode.Letters);
+        GameplayNavigationRequest observedRequest = null;
+        int resultCount = 0;
+        int navigationRequestCount = 0;
+        loop.Finished += state =>
         {
-            Equal(SequenceState.Won, state, "case-insensitive final input reports win");
-            results++;
+            AssertEqual(SequenceState.Won, state, "case-insensitive final input reports win");
+            resultCount++;
         };
         loop.NavigationRequested += request =>
         {
-            observed = request;
-            navigation++;
+            observedRequest = request;
+            navigationRequestCount++;
         };
 
         loop.Run();
@@ -111,37 +120,37 @@ public static class GameplayLoopChecks
         loop.Submit(' ');
         loop.Submit(' ');
 
-        Equal(1, results, "win result is emitted once");
-        Equal(1, navigation, "win navigation is emitted once");
-        Equal(GameplayNavigationDestination.MainMenu, observed.Destination, "win returns to menu");
+        AssertEqual(SingleEventCount, resultCount, "win result is emitted once");
+        AssertEqual(SingleEventCount, navigationRequestCount, "win navigation is emitted once");
+        AssertEqual(GameplayNavigationDestination.MainMenu, observedRequest.Destination, "win returns to menu");
     }
 
     private static void FailedNavigationCanBeRetried()
     {
-        var loop = Create("1", SequenceMode.Digits);
-        int navigation = 0;
-        loop.NavigationRequested += request => navigation++;
+        var loop = CreateLoop("1", SequenceMode.Digits);
+        int navigationRequestCount = 0;
+        loop.NavigationRequested += request => navigationRequestCount++;
 
         loop.Run();
         loop.Submit('9');
         loop.Submit(' ');
         loop.Submit(' ');
-        Equal(1, navigation, "a pending navigation request remains latched");
+        AssertEqual(SingleEventCount, navigationRequestCount, "a pending navigation request remains latched");
 
         loop.AllowNavigationRetry();
         loop.Submit(' ');
-        Equal(2, navigation, "a failed transition can be requested again explicitly");
+        AssertEqual(TwoEventCount, navigationRequestCount, "a failed transition can be requested again explicitly");
     }
 
     private static void StopIsTerminalAndBlocksFurtherInput()
     {
-        var loop = Create("12", SequenceMode.Digits);
-        int updates = 0;
-        int results = 0;
-        int navigation = 0;
-        loop.Updated += () => updates++;
-        loop.Result += state => results++;
-        loop.NavigationRequested += request => navigation++;
+        var loop = CreateLoop("12", SequenceMode.Digits);
+        int updateCount = 0;
+        int resultCount = 0;
+        int navigationRequestCount = 0;
+        loop.Updated += () => updateCount++;
+        loop.Finished += state => resultCount++;
+        loop.NavigationRequested += request => navigationRequestCount++;
 
         loop.Run();
         loop.Stop();
@@ -149,42 +158,42 @@ public static class GameplayLoopChecks
         loop.Run();
         loop.Submit(' ');
 
-        Equal(1, updates, "Stop blocks later updates and repeated Run");
-        Equal(0, loop.Session.Progress, "Stop blocks progress");
-        Equal(0, results, "Stop blocks results");
-        Equal(0, navigation, "Stop blocks navigation");
+        AssertEqual(SingleEventCount, updateCount, "Stop blocks later updates and repeated Run");
+        AssertEqual(0, loop.Session.Progress, "Stop blocks progress");
+        AssertEqual(0, resultCount, "Stop blocks results");
+        AssertEqual(0, navigationRequestCount, "Stop blocks navigation");
     }
 
     private static void ResultCallbacksCannotReenterSubmission()
     {
-        var loop = Create("1", SequenceMode.Digits);
-        int navigation = 0;
-        loop.NavigationRequested += request => navigation++;
-        loop.Result += state => loop.Submit(' ');
+        var loop = CreateLoop("1", SequenceMode.Digits);
+        int navigationRequestCount = 0;
+        loop.NavigationRequested += request => navigationRequestCount++;
+        loop.Finished += state => loop.Submit(' ');
 
         loop.Run();
         loop.Submit('1');
 
-        Equal(0, navigation, "result callbacks cannot reuse the completing input cycle");
+        AssertEqual(0, navigationRequestCount, "result callbacks cannot reuse the completing input cycle");
         loop.Submit(' ');
-        Equal(1, navigation, "later input can navigate after result delivery");
+        AssertEqual(SingleEventCount, navigationRequestCount, "later input can navigate after result delivery");
     }
 
     private static void InitialUpdateCallbacksCannotSubmitInput()
     {
-        var loop = Create("1", SequenceMode.Digits);
+        var loop = CreateLoop("1", SequenceMode.Digits);
         loop.Updated += () => loop.Submit('1');
 
         loop.Run();
 
-        Equal(0, loop.Session.Progress, "initial update callbacks cannot submit input");
+        AssertEqual(0, loop.Session.Progress, "initial update callbacks cannot submit input");
     }
 
     private static void StopFromUpdateSuppressesResultDelivery()
     {
-        var loop = Create("1", SequenceMode.Digits);
-        int results = 0;
-        loop.Result += state => results++;
+        var loop = CreateLoop("1", SequenceMode.Digits);
+        int resultCount = 0;
+        loop.Finished += state => resultCount++;
         loop.Updated += () =>
         {
             if (loop.Session.State == SequenceState.Won)
@@ -194,99 +203,180 @@ public static class GameplayLoopChecks
         loop.Run();
         loop.Submit('1');
 
-        Equal(0, results, "Stop from an update suppresses later result delivery");
+        AssertEqual(0, resultCount, "Stop from an update suppresses later result delivery");
     }
 
     private static void EvaluatedInputEmitsOneSemanticEventBeforeVisualAndResultEvents()
     {
-        var loop = Create("12", SequenceMode.Digits);
-        string events = "";
-        loop.InputEvaluated += evaluation => events += "evaluation:" + evaluation + ",";
-        loop.Updated += () => events += "updated,";
-        loop.Result += state => events += "result:" + state + ",";
+        var loop = CreateLoop("12", SequenceMode.Digits);
+        string eventTrace = "";
+        loop.InputEvaluated += evaluation => eventTrace += "evaluation:" + evaluation + ",";
+        loop.Updated += () => eventTrace += "updated,";
+        loop.Finished += state => eventTrace += "result:" + state + ",";
 
         loop.Run();
-        events = "";
+        eventTrace = "";
         loop.Submit('1');
-        Equal("evaluation:Correct,updated,", events, "non-final match emits Correct before its visual update");
+        AssertEqual("evaluation:Correct,updated,", eventTrace, "non-final match emits Correct before its visual update");
 
-        events = "";
+        eventTrace = "";
         loop.Submit('2');
-        Equal("evaluation:Completed,updated,result:Won,", events, "final match emits only Completed before update and result");
+        AssertEqual("evaluation:Completed,updated,result:Won,", eventTrace, "final match emits only Completed before update and result");
 
-        var losingLoop = Create("12", SequenceMode.Digits);
-        events = "";
-        losingLoop.InputEvaluated += evaluation => events += "evaluation:" + evaluation + ",";
-        losingLoop.Updated += () => events += "updated,";
-        losingLoop.Result += state => events += "result:" + state + ",";
+        var losingLoop = CreateLoop("12", SequenceMode.Digits);
+        eventTrace = "";
+        losingLoop.InputEvaluated += evaluation => eventTrace += "evaluation:" + evaluation + ",";
+        losingLoop.Updated += () => eventTrace += "updated,";
+        losingLoop.Finished += state => eventTrace += "result:" + state + ",";
         losingLoop.Run();
-        events = "";
+        eventTrace = "";
         losingLoop.Submit('9');
 
-        Equal("evaluation:Incorrect,updated,result:Lost,", events, "incorrect input emits only Incorrect before update and result");
+        AssertEqual("evaluation:Incorrect,updated,result:Lost,", eventTrace, "incorrect input emits only Incorrect before update and result");
     }
 
     private static void IgnoredAndTerminalInputStaySilent()
     {
-        var loop = Create("1", SequenceMode.Digits);
-        int evaluations = 0;
-        loop.InputEvaluated += evaluation => evaluations++;
+        var loop = CreateLoop("1", SequenceMode.Digits);
+        int evaluationCount = 0;
+        loop.InputEvaluated += evaluation => evaluationCount++;
 
         loop.Submit('1');
         loop.Run();
         loop.Submit('\n');
-        Equal(0, evaluations, "input ignored before Run and control input emit no evaluation");
+        AssertEqual(0, evaluationCount, "input ignored before Run and control input emit no evaluation");
 
         loop.Submit('1');
         loop.Submit('x');
         loop.Submit(' ');
 
-        Equal(1, evaluations, "completed input and terminal navigation produce no duplicate feedback");
+        AssertEqual(SingleEventCount, evaluationCount, "completed input and terminal navigation produce no duplicate feedback");
     }
 
     private static void InputEvaluatedCallbacksCannotReenterSubmission()
     {
-        var loop = Create("12", SequenceMode.Digits);
-        int evaluations = 0;
+        var loop = CreateLoop("12", SequenceMode.Digits);
+        int evaluationCount = 0;
         loop.InputEvaluated += evaluation =>
         {
-            evaluations++;
+            evaluationCount++;
             loop.Submit('2');
         };
 
         loop.Run();
         loop.Submit('1');
 
-        Equal(1, loop.Session.Progress, "input-evaluated callbacks cannot advance the sequence again");
-        Equal(1, evaluations, "reentrant submission cannot emit another evaluation");
+        AssertEqual(SingleCharacterProgress, loop.Session.Progress, "input-evaluated callbacks cannot advance the sequence again");
+        AssertEqual(SingleEventCount, evaluationCount, "reentrant submission cannot emit another evaluation");
     }
 
     private static void StopFromInputEvaluatedSuppressesLaterEvents()
     {
-        var loop = Create("1", SequenceMode.Digits);
-        int updates = 0;
-        int results = 0;
-        loop.Updated += () => updates++;
-        loop.Result += state => results++;
+        var loop = CreateLoop("1", SequenceMode.Digits);
+        int updateCount = 0;
+        int resultCount = 0;
+        loop.Updated += () => updateCount++;
+        loop.Finished += state => resultCount++;
         loop.InputEvaluated += evaluation => loop.Stop();
 
         loop.Run();
         loop.Submit('1');
 
-        Equal(1, updates, "Stop from input feedback suppresses the trailing visual update");
-        Equal(0, results, "Stop from input feedback suppresses the trailing result");
+        AssertEqual(SingleEventCount, updateCount, "Stop from input feedback suppresses the trailing visual update");
+        AssertEqual(0, resultCount, "Stop from input feedback suppresses the trailing result");
     }
 
-    private static GameplayLoop Create(string target, SequenceMode mode)
+    private static GameplayLoop CreateLoop(string target, SequenceMode mode)
     {
-        return new GameplayLoop(new SequenceSession(target), new GameplayInputArgs(1, mode));
+        return new GameplayLoop(CreateSession(target), new GameplayInputArgs(DefaultLevelNumber, mode));
     }
 
-    private static void Equal<T>(T expected, T actual, string label)
+    private static SequenceSession CreateSession(string target)
     {
-        if (!Equals(expected, actual))
+        var session = new SequenceSession(new SequenceGenerator(new OrderedRandom()));
+        session.Initialize(target, target.Length);
+        return session;
+    }
+
+    private static void SessionInitializationIsExplicitAndRunsOnce()
+    {
+        var random = new OrderedRandom();
+        var session = new SequenceSession(new SequenceGenerator(random));
+        AssertEqual(0, random.CallCount, "construction does not generate a target");
+        AssertEqual(false, session.IsInitialized, "new session waits for initialization");
+
+        const string initialSymbols = "ab";
+        const string replacementSymbols = "xyz";
+        int sequenceLength = initialSymbols.Length;
+        session.Initialize(initialSymbols, sequenceLength);
+        AssertEqual("AB", session.Target, "initialization generates and normalizes target");
+        AssertEqual(sequenceLength, random.CallCount, "one generation draws exactly the requested characters");
+        session.Submit('a');
+
+        AssertThrows<InvalidOperationException>(() => session.Initialize(replacementSymbols, replacementSymbols.Length),
+            "repeated initialization must not replace an active round");
+        AssertEqual("AB", session.Target, "repeated initialization preserves target");
+        AssertEqual(SingleCharacterProgress, session.Progress, "repeated initialization preserves progress");
+        AssertEqual(sequenceLength, random.CallCount, "repeated initialization does not consume randomness");
+    }
+
+    private static void UninitializedSessionCannotAcceptInputOrRun()
+    {
+        var session = new SequenceSession(new SequenceGenerator(new OrderedRandom()));
+        var loop = new GameplayLoop(session, new GameplayInputArgs(DefaultLevelNumber, SequenceMode.Digits));
+        int updateCount = 0;
+        loop.Updated += () => updateCount++;
+
+        AssertThrows<InvalidOperationException>(() => session.Submit('1'), "input requires a prepared session");
+        AssertThrows<InvalidOperationException>(() => loop.Run(), "Run requires a prepared session");
+        AssertEqual(0, updateCount, "failed startup does not publish an unprepared session");
+
+        const string singleSymbol = "1";
+        session.Initialize(singleSymbol, singleSymbol.Length);
+        loop.Run();
+        loop.Submit('1');
+        AssertEqual(SequenceState.Won, session.State, "failed premature Run does not prevent correct startup");
+    }
+
+    private static void InvalidInitializationCanBeCorrected()
+    {
+        var session = new SequenceSession(new SequenceGenerator(new OrderedRandom()));
+        AssertThrows<ArgumentException>(() => session.Initialize("", SequenceGenerator.MinimumLength), "empty symbols are rejected");
+        AssertThrows<ArgumentException>(() => session.Initialize("1", 0), "invalid length is rejected");
+        AssertEqual(false, session.IsInitialized, "failed initialization leaves the session uninitialized");
+
+        const string validSymbols = "12";
+        session.Initialize(validSymbols, validSymbols.Length);
+        AssertEqual("12", session.Target, "valid initialization succeeds after validation failure");
+    }
+
+    private static void AssertThrows<TException>(Action action, string label) where TException : Exception
+    {
+        try
+        {
+            action();
+        }
+        catch (TException)
+        {
+            _passedCount++;
+            return;
+        }
+
+        throw new Exception(label);
+    }
+
+    private static void AssertEqual<T>(T expected, T actual, string label)
+    {
+        if (Equals(expected, actual) == false)
             throw new Exception(label + ": expected " + expected + ", got " + actual);
 
-        _passed++;
+        _passedCount++;
+    }
+
+    private sealed class OrderedRandom : Random
+    {
+        public int CallCount { get; private set; }
+
+        public override int Next(int maxValue) => CallCount++ % maxValue;
     }
 }

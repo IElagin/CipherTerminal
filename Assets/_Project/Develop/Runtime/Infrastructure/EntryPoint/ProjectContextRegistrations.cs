@@ -26,28 +26,53 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
             builder.RegisterInstance(audioService).As<IAudioService>();
             builder.Register<ResourcesAssetLoader>(Lifetime.Singleton);
             builder.Register<ResourcesConfigsLoader>(Lifetime.Singleton).As<IConfigsLoader>();
-            builder.Register(c => new ConfigsProviderService(c.Resolve<IConfigsLoader>()), Lifetime.Singleton);
+            builder.Register(CreateConfigsProvider, Lifetime.Singleton);
             builder.Register<JsonSerializer>(Lifetime.Singleton).As<IDataSerializer>();
             builder.Register<MapDataKeysStorage>(Lifetime.Singleton).As<IDataKeysStorage>();
-            builder.Register(c => new LocalFileDataRepository(
-                Path.Combine(Application.persistentDataPath, "Saves"), "json"), Lifetime.Singleton)
-                .As<IDataRepository>();
-            builder.Register(c => new SaveLoadService(c.Resolve<IDataSerializer>(),
-                c.Resolve<IDataKeysStorage>(), c.Resolve<IDataRepository>()), Lifetime.Singleton)
-                .As<ISaveLoadService>();
+            builder.Register(CreateLocalFileRepository, Lifetime.Singleton).As<IDataRepository>();
+            builder.Register<SaveLoadService>(Lifetime.Singleton).As<ISaveLoadService>();
             builder.Register<WalletService>(Lifetime.Singleton);
             builder.Register<StatisticsService>(Lifetime.Singleton);
-            builder.Register(c => new PlayerDataProvider(c.Resolve<ISaveLoadService>(),
-                c.Resolve<ConfigsProviderService>().GetConfig<EconomyConfig>().Rules), Lifetime.Singleton);
-            builder.Register(c => new PlayerProgressService(
-                c.Resolve<PlayerDataProvider>(),
-                c.Resolve<WalletService>(),
-                c.Resolve<StatisticsService>(),
-                c.Resolve<ConfigsProviderService>().GetConfig<EconomyConfig>().Rules,
-                projectToken), Lifetime.Singleton);
+            builder.Register(CreatePlayerDataProvider, Lifetime.Singleton);
+            builder.Register(CreatePlayerProgress, Lifetime.Singleton);
             builder.Register<SceneLoaderService>(Lifetime.Singleton);
-            builder.Register(c => new SceneSwitcherService(c.Resolve<SceneLoaderService>(),
-                c.Resolve<ILoadingScreen>(), c, projectToken), Lifetime.Singleton);
+            builder.Register(CreateSceneSwitcher, Lifetime.Singleton);
+
+            PlayerProgressService CreatePlayerProgress(IObjectResolver container)
+            {
+                PlayerDataProvider provider = container.Resolve<PlayerDataProvider>();
+                WalletService wallet = container.Resolve<WalletService>();
+                StatisticsService statistics = container.Resolve<StatisticsService>();
+                EconomyRules rules = container.Resolve<ConfigsProviderService>().GetConfig<EconomyConfig>().Rules;
+
+                return new PlayerProgressService(provider, wallet, statistics, rules, projectToken);
+            }
+
+            SceneSwitcherService CreateSceneSwitcher(IObjectResolver container)
+            {
+                SceneLoaderService loader = container.Resolve<SceneLoaderService>();
+                ILoadingScreen screen = container.Resolve<ILoadingScreen>();
+
+                return new SceneSwitcherService(loader, screen, container, projectToken);
+            }
+        }
+
+        private static ConfigsProviderService CreateConfigsProvider(IObjectResolver container)
+        {
+            return new ConfigsProviderService(container.Resolve<IConfigsLoader>());
+        }
+
+        private static LocalFileDataRepository CreateLocalFileRepository(IObjectResolver container)
+        {
+            return new LocalFileDataRepository(Path.Combine(Application.persistentDataPath, "Saves"), "json");
+        }
+
+        private static PlayerDataProvider CreatePlayerDataProvider(IObjectResolver container)
+        {
+            ISaveLoadService saveLoad = container.Resolve<ISaveLoadService>();
+            EconomyRules rules = container.Resolve<ConfigsProviderService>().GetConfig<EconomyConfig>().Rules;
+
+            return new PlayerDataProvider(saveLoad, rules);
         }
     }
 }

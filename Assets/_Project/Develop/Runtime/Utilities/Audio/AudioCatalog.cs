@@ -6,16 +6,22 @@ namespace Assets._Project.Develop.Runtime.Utilities.Audio
     [CreateAssetMenu(menuName = "Cipher Terminal/Audio Catalog")]
     public sealed class AudioCatalog : ScriptableObject
     {
+        private const float MaximumVolume = 1f;
+        private const int FirstKeyClipIndex = 0;
+        private const int SecondKeyClipIndex = 1;
+        private const int ThirdKeyClipIndex = 2;
+        private const int NumberOfKeyClips = 3;
+
         [SerializeField] private AudioClip _ambientClip;
         [SerializeField] private AudioClip _keyClip1;
         [SerializeField] private AudioClip _keyClip2;
         [SerializeField] private AudioClip _keyClip3;
         [SerializeField] private AudioClip _errorClip;
         [SerializeField] private AudioClip _successClip;
-        [SerializeField, Range(0f, 1f)] private float _ambientVolume = .22f;
-        [SerializeField, Range(0f, 1f)] private float _keyVolume = .65f;
-        [SerializeField, Range(0f, 1f)] private float _errorVolume = .55f;
-        [SerializeField, Range(0f, 1f)] private float _successVolume = .55f;
+        [SerializeField, Range(0f, MaximumVolume)] private float _ambientVolume = .22f;
+        [SerializeField, Range(0f, MaximumVolume)] private float _keyVolume = .65f;
+        [SerializeField, Range(0f, MaximumVolume)] private float _errorVolume = .55f;
+        [SerializeField, Range(0f, MaximumVolume)] private float _successVolume = .55f;
 
         public AudioClip AmbientClip => _ambientClip;
         public AudioClip ErrorClip => _errorClip;
@@ -24,15 +30,15 @@ namespace Assets._Project.Develop.Runtime.Utilities.Audio
         public float KeyVolume => _keyVolume;
         public float ErrorVolume => _errorVolume;
         public float SuccessVolume => _successVolume;
-        public int KeyClipCount => 3;
+        public int KeyClipCount => NumberOfKeyClips;
 
         public AudioClip GetKeyClip(int index)
         {
             return index switch
             {
-                0 => _keyClip1,
-                1 => _keyClip2,
-                2 => _keyClip3,
+                FirstKeyClipIndex => _keyClip1,
+                SecondKeyClipIndex => _keyClip2,
+                ThirdKeyClipIndex => _keyClip3,
                 _ => throw new ArgumentOutOfRangeException(nameof(index))
             };
         }

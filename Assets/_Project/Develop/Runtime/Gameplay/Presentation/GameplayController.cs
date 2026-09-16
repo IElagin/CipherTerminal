@@ -23,14 +23,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
         private bool _initialUpdateReceived;
         private bool _disposed;
 
-        public SequenceSession Session => _loop?.Session;
-
-        public void Configure(GameplayLoop loop, SceneNavigator navigator, IAudioService audio)
+        public void Initialize(GameplayLoop loop, SceneNavigator navigator, IAudioService audio)
         {
             _loop = loop;
             _navigator = navigator;
             _audio = audio;
         }
+
+        public SequenceSession Session => _loop?.Session;
 
         public void Run()
         {
@@ -39,7 +39,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
 
             _running = true;
             Subscribe();
-            _keyboard.Character += OnCharacter;
+            _keyboard.CharacterEntered += OnCharacterEntered;
             _keyboard.Activate();
             _loop.Run();
 
@@ -47,7 +47,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
             Debug.Log("Последовательность [" + mode + "]: " + _loop.Session.Target);
         }
 
-        private void OnCharacter(char character)
+        private void OnCharacterEntered(char character)
         {
             _loop.Submit(character);
         }
@@ -75,7 +75,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
             _audio.Play(cue);
         }
 
-        private void OnResult(SequenceState state)
+        private void OnFinished(SequenceState state)
         {
             if (state == SequenceState.Won)
                 Debug.Log("Победа — Пробел возвращает в главное меню");
@@ -108,13 +108,13 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
             _subscribed = true;
             _loop.InputEvaluated += OnInputEvaluated;
             _loop.Updated += OnUpdated;
-            _loop.Result += OnResult;
+            _loop.Finished += OnFinished;
             _loop.NavigationRequested += OnNavigationRequested;
         }
 
         private void PauseInput()
         {
-            if (!_running)
+            if (_running == false)
                 return;
 
             _running = false;
@@ -136,17 +136,17 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
             PauseInput();
 
             if (_keyboard != null)
-                _keyboard.Character -= OnCharacter;
+                _keyboard.CharacterEntered -= OnCharacterEntered;
 
             _loop?.Stop();
 
-            if (!_subscribed)
+            if (_subscribed == false)
                 return;
 
             _subscribed = false;
             _loop.InputEvaluated -= OnInputEvaluated;
             _loop.Updated -= OnUpdated;
-            _loop.Result -= OnResult;
+            _loop.Finished -= OnFinished;
             _loop.NavigationRequested -= OnNavigationRequested;
         }
 

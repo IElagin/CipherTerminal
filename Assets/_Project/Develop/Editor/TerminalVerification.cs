@@ -12,16 +12,23 @@ namespace Assets._Project.Develop.Editor
 {
     public static class TerminalVerification
     {
+        private const double InitialStepDelay = .35;
+        private const double StepInterval = .18;
+        private const int FirstEscapeCount = 1;
+        private const int SecondEscapeCount = 2;
+        private const int StandaloneViewGroup = 0;
+        private const int FixedResolutionSizeType = 1;
+
         private static Keyboard _device;
-        private static Keyboard _original;
+        private static Keyboard _originalKeyboard;
         private static GameObject _probe;
         private static TerminalKeyboard _input;
-        private static readonly Queue<Action> Steps = new Queue<Action>();
-        private static readonly List<string> Results = new List<string>();
+        private static readonly Queue<Action> _steps = new Queue<Action>();
+        private static readonly List<string> _results = new List<string>();
         private static string _received;
         private static int _escapeCount;
-        private static double _next;
-        private static bool _background;
+        private static double _nextStepTime;
+        private static bool _originalRunInBackground;
         private static InputSettings _originalSettings;
         private static InputSettings _testSettings;
 
@@ -29,24 +36,25 @@ namespace Assets._Project.Develop.Editor
 
         public static void StartKeyboardChecks()
         {
-            if (!EditorApplication.isPlaying)
+            if (EditorApplication.isPlaying == false)
                 throw new InvalidOperationException("Play Mode required");
 
             if (Status == "running")
                 throw new InvalidOperationException("Already running");
 
             Status = "running";
-            Results.Clear();
-            Steps.Clear();
+            _results.Clear();
+            _steps.Clear();
             _received = "";
             _escapeCount = 0;
 
-            _background = Application.runInBackground;
+            _originalRunInBackground = Application.runInBackground;
             Application.runInBackground = true;
             _originalSettings = InputSystem.settings;
 
             // InputManager destroys HideAndDontSave defaults when settings are replaced.
             // Keep a value-preserving clone to restore instead of a soon-destroyed reference.
+
             if (_originalSettings.hideFlags == HideFlags.HideAndDontSave)
                 _originalSettings = UnityEngine.Object.Instantiate(_originalSettings);
 
@@ -55,61 +63,61 @@ namespace Assets._Project.Develop.Editor
             _testSettings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
             InputSystem.settings = _testSettings;
 
-            _original = Keyboard.current;
+            _originalKeyboard = Keyboard.current;
             _device = InputSystem.AddDevice<Keyboard>();
             _probe = new GameObject("KeyboardRegressionProbe");
             _input = _probe.AddComponent<TerminalKeyboard>();
-            _input.Character += c => _received += c;
-            _input.Escape += () => _escapeCount++;
+            _input.CharacterEntered += character => _received += character;
+            _input.EscapePressed += () => _escapeCount++;
             _input.Activate();
 
-            Steps.Enqueue(() => Press(null, Key.LeftShift));
-            Steps.Enqueue(() => Press('A', Key.LeftShift, Key.A));
-            Steps.Enqueue(() => Require(_received == "A", "Shift+letter is accepted"));
-            Steps.Enqueue(() => Press('B', Key.LeftShift, Key.A, Key.B));
-            Steps.Enqueue(() => Require(_received == "AB", "overlapping character key is accepted"));
-            Steps.Enqueue(() => Press(null));
-            Steps.Enqueue(() => Press(null, Key.LeftShift));
-            Steps.Enqueue(() => Press(' ', Key.LeftShift, Key.Space));
-            Steps.Enqueue(() => Require(_received == "AB ", "Shift+Space is delivered once as a character"));
-            Steps.Enqueue(() => InputSystem.QueueTextEvent(_device, ' '));
-            Steps.Enqueue(() => Require(_received == "AB ", "held Space text repeat is ignored"));
-            Steps.Enqueue(() => Press(null));
-            Steps.Enqueue(() => Press(null, Key.Space));
-            Steps.Enqueue(() => Require(_received == "AB  ", "Space edge is delivered without a text callback"));
-            Steps.Enqueue(() =>
+            _steps.Enqueue(() => Press(null, Key.LeftShift));
+            _steps.Enqueue(() => Press('A', Key.LeftShift, Key.A));
+            _steps.Enqueue(() => Require(_received == "A", "Shift+letter is accepted"));
+            _steps.Enqueue(() => Press('B', Key.LeftShift, Key.A, Key.B));
+            _steps.Enqueue(() => Require(_received == "AB", "overlapping character key is accepted"));
+            _steps.Enqueue(() => Press(null));
+            _steps.Enqueue(() => Press(null, Key.LeftShift));
+            _steps.Enqueue(() => Press(' ', Key.LeftShift, Key.Space));
+            _steps.Enqueue(() => Require(_received == "AB ", "Shift+Space is delivered once as a character"));
+            _steps.Enqueue(() => InputSystem.QueueTextEvent(_device, ' '));
+            _steps.Enqueue(() => Require(_received == "AB ", "held Space text repeat is ignored"));
+            _steps.Enqueue(() => Press(null));
+            _steps.Enqueue(() => Press(null, Key.Space));
+            _steps.Enqueue(() => Require(_received == "AB  ", "Space edge is delivered without a text callback"));
+            _steps.Enqueue(() =>
             {
                 InputSystem.QueueStateEvent(_device, new KeyboardState(Key.Space, Key.C));
                 InputSystem.QueueTextEvent(_device, ' ');
                 InputSystem.QueueTextEvent(_device, 'C');
             });
-            Steps.Enqueue(() => Require(_received == "AB  C", "delayed Space repeat is discarded beside fresh text"));
-            Steps.Enqueue(() => InputSystem.QueueTextEvent(_device, 'C'));
-            Steps.Enqueue(() => Require(_received.EndsWith("C") && !_received.EndsWith("CC"), "held-key text repeat is ignored"));
-            Steps.Enqueue(() =>
+            _steps.Enqueue(() => Require(_received == "AB  C", "delayed Space repeat is discarded beside fresh text"));
+            _steps.Enqueue(() => InputSystem.QueueTextEvent(_device, 'C'));
+            _steps.Enqueue(() => Require(_received.EndsWith("C") && _received.EndsWith("CC") == false, "held-key text repeat is ignored"));
+            _steps.Enqueue(() =>
             {
                 _input.Deactivate();
                 Press('A', Key.A);
             });
-            Steps.Enqueue(() =>
+            _steps.Enqueue(() =>
             {
                 _received = "";
                 _input.Activate();
             });
-            Steps.Enqueue(() => InputSystem.QueueTextEvent(_device, 'A'));
-            Steps.Enqueue(() => Require(_received == "", "held entry key blocked until release"));
-            Steps.Enqueue(() => Press(null));
-            Steps.Enqueue(() => Press('A', Key.A));
-            Steps.Enqueue(() => Require(_received == "A", "fresh key accepted after release"));
-            Steps.Enqueue(() => Press(null));
-            Steps.Enqueue(() => Press('4', Key.Escape, Key.Digit4));
-            Steps.Enqueue(() => Require(_escapeCount == 1 && _received == "A", "Escape edge is separate from character input"));
-            Steps.Enqueue(() => Press('4', Key.Escape, Key.Digit4));
-            Steps.Enqueue(() => Require(_escapeCount == 1 && _received == "A", "held Escape and queued text are ignored"));
-            Steps.Enqueue(() => Press(null));
-            Steps.Enqueue(() => Press(null, Key.Escape));
-            Steps.Enqueue(() => Require(_escapeCount == 2 && _received == "A", "fresh Escape is accepted after release"));
-            _next = EditorApplication.timeSinceStartup + .35;
+            _steps.Enqueue(() => InputSystem.QueueTextEvent(_device, 'A'));
+            _steps.Enqueue(() => Require(_received == "", "held entry key blocked until release"));
+            _steps.Enqueue(() => Press(null));
+            _steps.Enqueue(() => Press('A', Key.A));
+            _steps.Enqueue(() => Require(_received == "A", "fresh key accepted after release"));
+            _steps.Enqueue(() => Press(null));
+            _steps.Enqueue(() => Press('4', Key.Escape, Key.Digit4));
+            _steps.Enqueue(() => Require(_escapeCount == FirstEscapeCount && _received == "A", "Escape edge is separate from character input"));
+            _steps.Enqueue(() => Press('4', Key.Escape, Key.Digit4));
+            _steps.Enqueue(() => Require(_escapeCount == FirstEscapeCount && _received == "A", "held Escape and queued text are ignored"));
+            _steps.Enqueue(() => Press(null));
+            _steps.Enqueue(() => Press(null, Key.Escape));
+            _steps.Enqueue(() => Require(_escapeCount == SecondEscapeCount && _received == "A", "fresh Escape is accepted after release"));
+            _nextStepTime = EditorApplication.timeSinceStartup + InitialStepDelay;
             EditorApplication.update += Tick;
         }
 
@@ -123,35 +131,35 @@ namespace Assets._Project.Develop.Editor
 
         private static void Require(bool condition, string label)
         {
-            if (!condition)
+            if (condition == false)
                 throw new Exception(label + "; received=" + _received);
 
-            Results.Add("PASS: " + label);
+            _results.Add("PASS: " + label);
         }
 
         private static void Tick()
         {
-            if (EditorApplication.timeSinceStartup < _next)
+            if (EditorApplication.timeSinceStartup < _nextStepTime)
                 return;
 
-            _next = EditorApplication.timeSinceStartup + .18;
+            _nextStepTime = EditorApplication.timeSinceStartup + StepInterval;
 
             try
             {
-                if (!EditorApplication.isPlaying)
+                if (EditorApplication.isPlaying == false)
                     throw new Exception("Play Mode ended during verification");
 
-                if (Steps.Count == 0)
+                if (_steps.Count == 0)
                 {
                     Finish("passed");
                     return;
                 }
 
-                Steps.Dequeue()();
+                _steps.Dequeue()();
             }
             catch (Exception error)
             {
-                Results.Add("FAIL: " + error.Message);
+                _results.Add("FAIL: " + error.Message);
                 Finish("failed");
             }
         }
@@ -166,20 +174,20 @@ namespace Assets._Project.Develop.Editor
             if (_device != null && _device.added)
                 InputSystem.RemoveDevice(_device);
 
-            if (_original != null && _original.added)
-                _original.MakeCurrent();
+            if (_originalKeyboard != null && _originalKeyboard.added)
+                _originalKeyboard.MakeCurrent();
 
             InputSystem.settings = _originalSettings;
 
             if (_testSettings != null)
                 UnityEngine.Object.Destroy(_testSettings);
 
-            Application.runInBackground = _background;
+            Application.runInBackground = _originalRunInBackground;
             Status = status;
 
-            string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "../Temp/Checks"));
-            Directory.CreateDirectory(dir);
-            File.WriteAllLines(Path.Combine(dir, "keyboard-" + status + ".txt"), Results);
+            string resultsDirectory = Path.GetFullPath(Path.Combine(Application.dataPath, "../Temp/Checks"));
+            Directory.CreateDirectory(resultsDirectory);
+            File.WriteAllLines(Path.Combine(resultsDirectory, "keyboard-" + status + ".txt"), _results);
             Debug.Log("Keyboard regression checks: " + status);
         }
 
@@ -191,7 +199,7 @@ namespace Assets._Project.Develop.Editor
             object sizes = singleton.GetProperty("instance").GetValue(null);
             MethodInfo getGroup = sizesType.GetMethod("GetGroup");
             Type groupEnum = getGroup.GetParameters()[0].ParameterType;
-            object group = getGroup.Invoke(sizes, new[] { Enum.ToObject(groupEnum, 0) });
+            object group = getGroup.Invoke(sizes, new[] { Enum.ToObject(groupEnum, StandaloneViewGroup) });
             Type sizeType = assembly.GetType("UnityEditor.GameViewSize");
             Type kind = assembly.GetType("UnityEditor.GameViewSizeType");
             int count = (int)group.GetType().GetMethod("GetTotalCount").Invoke(group, null);
@@ -210,10 +218,11 @@ namespace Assets._Project.Develop.Editor
 
             if (selected < 0)
             {
-                object size = Activator.CreateInstance(sizeType, new object[] { Enum.ToObject(kind, 1), width, height, "Cipher " + width + "x" + height });
+                object size = Activator.CreateInstance(sizeType, new object[] { Enum.ToObject(kind, FixedResolutionSizeType), width, height, "Cipher " + width + "x" + height });
                 group.GetType().GetMethod("AddCustomSize").Invoke(group, new[] { size });
                 selected = count;
             }
+
             Type viewType = assembly.GetType("UnityEditor.GameView");
             EditorWindow view = EditorWindow.GetWindow(viewType);
             viewType.GetProperty("selectedSizeIndex", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(view, selected);
@@ -223,7 +232,7 @@ namespace Assets._Project.Develop.Editor
             return "Selected " + width + "x" + height;
         }
 
-        public static string ActualResolution()
+        public static string GetActualResolution()
         {
             Type type = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView");
             var view = EditorWindow.GetWindow(type);

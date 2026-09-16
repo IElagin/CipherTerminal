@@ -10,10 +10,6 @@ namespace Assets._Project.Develop.Runtime.Gameplay
 
     public sealed class GameplayNavigationRequest
     {
-        public GameplayNavigationDestination Destination { get; }
-        public int LevelNumber { get; }
-        public SequenceMode Mode { get; }
-
         public GameplayNavigationRequest(
             GameplayNavigationDestination destination,
             int levelNumber,
@@ -23,5 +19,9 @@ namespace Assets._Project.Develop.Runtime.Gameplay
             LevelNumber = levelNumber;
             Mode = mode;
         }
+
+        public GameplayNavigationDestination Destination { get; }
+        public int LevelNumber { get; }
+        public SequenceMode Mode { get; }
     }
 }
