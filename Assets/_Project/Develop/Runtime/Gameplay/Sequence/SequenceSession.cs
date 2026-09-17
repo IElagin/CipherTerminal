@@ -6,7 +6,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Sequence
 
         public SequenceSession(SequenceGenerator generator)
         {
-            _generator = generator ?? throw new System.ArgumentNullException(nameof(generator));
+            _generator = generator;
         }
 
         public string Target { get; private set; }

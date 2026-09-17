@@ -74,7 +74,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 
         private void Choose(SequenceMode mode)
         {
-            if (_running == false || _navigator.IsLeaving || _progress.IsReady == false || _progress.IsBusy)
+            if (_running == false || _navigator.IsLeaving || _progress.IsReady == false)
                 return;
 
             _running = false;
@@ -82,22 +82,12 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
             _walletView.SetInteractable(false);
             _keyboard.Deactivate();
             _audio.Play(AudioCue.Key);
-            _navigator.Go(Scenes.Gameplay, new GameplayInputArgs(InitialLevelNumber, mode), OnNavigationFailed);
-        }
-
-        private void OnNavigationFailed()
-        {
-            if (this == null || _disposed)
-                return;
-
-            _running = true;
-            RefreshInteractability();
-            _keyboard.Activate();
+            _navigator.Go(Scenes.Gameplay, new GameplayInputArgs(InitialLevelNumber, mode));
         }
 
         private void OnToggleStatistics()
         {
-            if (_running == false || _progress.IsReady == false || _progress.IsBusy)
+            if (_running == false || _progress.IsReady == false)
                 return;
 
             bool expanded = _walletView.IsExpanded == false;
@@ -122,7 +112,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 
         private void OnEscapePressed()
         {
-            if (_running == false || _walletView.IsExpanded == false || _progress.IsBusy)
+            if (_running == false || _walletView.IsExpanded == false)
                 return;
 
             _walletView.SetExpanded(false);
@@ -132,7 +122,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 
         private void OnResetStatistics()
         {
-            if (_running == false || _walletView.IsExpanded == false || _progress.IsReady == false || _progress.IsBusy)
+            if (_running == false || _walletView.IsExpanded == false || _progress.IsReady == false)
                 return;
 
             ResetStatisticsAsync().Forget(AsyncErrors.Report);
@@ -213,7 +203,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
 
         private void RefreshInteractability()
         {
-            bool interactable = _running && _progress.IsReady && _progress.IsBusy == false;
+            bool interactable = _running && _progress.IsReady;
             _view.SetMenuEnabled(interactable);
             _walletView.SetInteractable(interactable);
         }

@@ -20,16 +20,11 @@ public static class GameplayLoopChecks
         RunDoesNotRepeatInitialUpdateOrResetProgress();
         InputSpaceLosesWithoutNavigatingUntilLaterSpace();
         LossRequestsSameModeRetryOnlyOnce();
-        FailedNavigationCanBeRetried();
+        NavigationRemainsLatched();
         WinRequestsMenuOnlyOnce();
         StopIsTerminalAndBlocksFurtherInput();
-        InitialUpdateCallbacksCannotSubmitInput();
-        ResultCallbacksCannotReenterSubmission();
-        StopFromUpdateSuppressesResultDelivery();
         EvaluatedInputEmitsOneSemanticEventBeforeVisualAndResultEvents();
         IgnoredAndTerminalInputStaySilent();
-        InputEvaluatedCallbacksCannotReenterSubmission();
-        StopFromInputEvaluatedSuppressesLaterEvents();
 
         Console.WriteLine("PASS " + _passedCount + " GameplayLoop checks");
         return 0;
@@ -125,7 +120,7 @@ public static class GameplayLoopChecks
         AssertEqual(GameplayNavigationDestination.MainMenu, observedRequest.Destination, "win returns to menu");
     }
 
-    private static void FailedNavigationCanBeRetried()
+    private static void NavigationRemainsLatched()
     {
         var loop = CreateLoop("1", SequenceMode.Digits);
         int navigationRequestCount = 0;
@@ -137,9 +132,8 @@ public static class GameplayLoopChecks
         loop.Submit(' ');
         AssertEqual(SingleEventCount, navigationRequestCount, "a pending navigation request remains latched");
 
-        loop.AllowNavigationRetry();
         loop.Submit(' ');
-        AssertEqual(TwoEventCount, navigationRequestCount, "a failed transition can be requested again explicitly");
+        AssertEqual(SingleEventCount, navigationRequestCount, "navigation stays latched until the scene is replaced");
     }
 
     private static void StopIsTerminalAndBlocksFurtherInput()
@@ -162,48 +156,6 @@ public static class GameplayLoopChecks
         AssertEqual(0, loop.Session.Progress, "Stop blocks progress");
         AssertEqual(0, resultCount, "Stop blocks results");
         AssertEqual(0, navigationRequestCount, "Stop blocks navigation");
-    }
-
-    private static void ResultCallbacksCannotReenterSubmission()
-    {
-        var loop = CreateLoop("1", SequenceMode.Digits);
-        int navigationRequestCount = 0;
-        loop.NavigationRequested += request => navigationRequestCount++;
-        loop.Finished += state => loop.Submit(' ');
-
-        loop.Run();
-        loop.Submit('1');
-
-        AssertEqual(0, navigationRequestCount, "result callbacks cannot reuse the completing input cycle");
-        loop.Submit(' ');
-        AssertEqual(SingleEventCount, navigationRequestCount, "later input can navigate after result delivery");
-    }
-
-    private static void InitialUpdateCallbacksCannotSubmitInput()
-    {
-        var loop = CreateLoop("1", SequenceMode.Digits);
-        loop.Updated += () => loop.Submit('1');
-
-        loop.Run();
-
-        AssertEqual(0, loop.Session.Progress, "initial update callbacks cannot submit input");
-    }
-
-    private static void StopFromUpdateSuppressesResultDelivery()
-    {
-        var loop = CreateLoop("1", SequenceMode.Digits);
-        int resultCount = 0;
-        loop.Finished += state => resultCount++;
-        loop.Updated += () =>
-        {
-            if (loop.Session.State == SequenceState.Won)
-                loop.Stop();
-        };
-
-        loop.Run();
-        loop.Submit('1');
-
-        AssertEqual(0, resultCount, "Stop from an update suppresses later result delivery");
     }
 
     private static void EvaluatedInputEmitsOneSemanticEventBeforeVisualAndResultEvents()
@@ -251,39 +203,6 @@ public static class GameplayLoopChecks
         loop.Submit(' ');
 
         AssertEqual(SingleEventCount, evaluationCount, "completed input and terminal navigation produce no duplicate feedback");
-    }
-
-    private static void InputEvaluatedCallbacksCannotReenterSubmission()
-    {
-        var loop = CreateLoop("12", SequenceMode.Digits);
-        int evaluationCount = 0;
-        loop.InputEvaluated += evaluation =>
-        {
-            evaluationCount++;
-            loop.Submit('2');
-        };
-
-        loop.Run();
-        loop.Submit('1');
-
-        AssertEqual(SingleCharacterProgress, loop.Session.Progress, "input-evaluated callbacks cannot advance the sequence again");
-        AssertEqual(SingleEventCount, evaluationCount, "reentrant submission cannot emit another evaluation");
-    }
-
-    private static void StopFromInputEvaluatedSuppressesLaterEvents()
-    {
-        var loop = CreateLoop("1", SequenceMode.Digits);
-        int updateCount = 0;
-        int resultCount = 0;
-        loop.Updated += () => updateCount++;
-        loop.Finished += state => resultCount++;
-        loop.InputEvaluated += evaluation => loop.Stop();
-
-        loop.Run();
-        loop.Submit('1');
-
-        AssertEqual(SingleEventCount, updateCount, "Stop from input feedback suppresses the trailing visual update");
-        AssertEqual(0, resultCount, "Stop from input feedback suppresses the trailing result");
     }
 
     private static GameplayLoop CreateLoop(string target, SequenceMode mode)

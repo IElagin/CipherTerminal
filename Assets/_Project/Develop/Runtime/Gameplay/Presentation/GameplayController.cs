@@ -90,14 +90,13 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
 
             if (request.Destination == GameplayNavigationDestination.MainMenu)
             {
-                _navigator.Go(Scenes.MainMenu, onFailed: OnNavigationFailed);
+                _navigator.Go(Scenes.MainMenu);
                 return;
             }
 
             _navigator.Go(
                 Scenes.Gameplay,
-                new GameplayInputArgs(request.LevelNumber, request.Mode),
-                OnNavigationFailed);
+                new GameplayInputArgs(request.LevelNumber, request.Mode));
         }
 
         private void Subscribe()
@@ -119,16 +118,6 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Presentation
 
             _running = false;
             _keyboard.Deactivate();
-        }
-
-        private void OnNavigationFailed()
-        {
-            if (this == null || _disposed || _loop == null)
-                return;
-
-            _loop.AllowNavigationRetry();
-            _running = true;
-            _keyboard.Activate();
         }
 
         private void Stop()

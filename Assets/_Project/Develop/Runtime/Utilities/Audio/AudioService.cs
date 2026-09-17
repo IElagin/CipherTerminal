@@ -19,9 +19,6 @@ namespace Assets._Project.Develop.Runtime.Utilities.Audio
             if (_initialized)
                 return;
 
-            if (catalog == null)
-                throw new ArgumentNullException(nameof(catalog));
-
             if (_ambientSource == null)
                 throw new InvalidOperationException("AudioService is missing " + nameof(_ambientSource));
 

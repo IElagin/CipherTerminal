@@ -75,7 +75,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
                 _loadingScreen.Hide();
                 bootstrap.Run();
             }
-            catch
+            catch (OperationCanceledException)
             {
                 ReleaseScene();
                 throw;
@@ -127,8 +127,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
             if (sceneName != Scenes.Gameplay)
                 return;
 
-            if (sceneArgs is not GameplayInputArgs gameplayInputArgs)
-                throw new ArgumentException("Gameplay requires GameplayInputArgs", nameof(sceneArgs));
+            GameplayInputArgs gameplayInputArgs = (GameplayInputArgs)sceneArgs;
 
             gameplayInputArgs.Validate(nameof(sceneArgs));
         }

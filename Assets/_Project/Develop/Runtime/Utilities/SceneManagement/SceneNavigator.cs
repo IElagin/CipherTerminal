@@ -1,4 +1,3 @@
-using System;
 using Cysharp.Threading.Tasks;
 using Assets._Project.Develop.Runtime.Infrastructure;
 
@@ -15,27 +14,13 @@ namespace Assets._Project.Develop.Runtime.Utilities.SceneManagement
 
         public bool IsLeaving { get; private set; }
 
-        public void Go(string sceneName, IInputSceneArgs sceneArgs = null, Action onFailed = null)
+        public void Go(string sceneName, IInputSceneArgs sceneArgs = null)
         {
             if (IsLeaving)
                 return;
 
             IsLeaving = true;
-            GoAsync(sceneName, sceneArgs, onFailed).Forget(AsyncErrors.Report);
-        }
-
-        private async UniTask GoAsync(string sceneName, IInputSceneArgs sceneArgs, Action onFailed)
-        {
-            try
-            {
-                await _switcher.SwitchAsync(sceneName, sceneArgs);
-            }
-            catch
-            {
-                IsLeaving = false;
-                onFailed?.Invoke();
-                throw;
-            }
+            _switcher.SwitchAsync(sceneName, sceneArgs).Forget(AsyncErrors.Report);
         }
     }
 }

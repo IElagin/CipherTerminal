@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.DataRepository;
@@ -22,21 +23,51 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment
         public async UniTask<TData> LoadAsync<TData>(CancellationToken cancellationToken = default)
             where TData : class, ISaveData
         {
-            string serialized = await _repository.ReadAsync(_keysStorage.GetKeyFor<TData>(), cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-            return _serializer.Deserialize<TData>(serialized);
+            string key = _keysStorage.GetKeyFor<TData>();
+
+            try
+            {
+                string serialized = await _repository.ReadAsync(key, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return _serializer.Deserialize<TData>(serialized);
+            }
+            catch (Exception exception) when (SaveDataException.IsExpectedFailure(exception))
+            {
+                throw new SaveDataException(exception);
+            }
         }
 
-        public UniTask SaveAsync<TData>(TData data, CancellationToken cancellationToken = default)
+        public async UniTask SaveAsync<TData>(TData data, CancellationToken cancellationToken = default)
             where TData : class, ISaveData
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string serialized = _serializer.Serialize(data);
-            return _repository.WriteAsync(_keysStorage.GetKeyFor<TData>(), serialized, cancellationToken);
+            string key = _keysStorage.GetKeyFor<TData>();
+
+            try
+            {
+                string serialized = _serializer.Serialize(data);
+                await _repository.WriteAsync(key, serialized, cancellationToken);
+            }
+            catch (Exception exception) when (SaveDataException.IsExpectedFailure(exception))
+            {
+                throw new SaveDataException(exception);
+            }
         }
 
-        public UniTask<bool> ExistsAsync<TData>(CancellationToken cancellationToken = default)
+        public async UniTask<bool> ExistsAsync<TData>(CancellationToken cancellationToken = default)
             where TData : class, ISaveData
-            => _repository.ExistsAsync(_keysStorage.GetKeyFor<TData>(), cancellationToken);
+        {
+            string key = _keysStorage.GetKeyFor<TData>();
+
+            try
+            {
+                return await _repository.ExistsAsync(key, cancellationToken);
+            }
+            catch (Exception exception) when (SaveDataException.IsExpectedFailure(exception))
+            {
+                throw new SaveDataException(exception);
+            }
+        }
     }
 }

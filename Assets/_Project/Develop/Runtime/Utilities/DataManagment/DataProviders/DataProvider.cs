@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
@@ -12,7 +13,6 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders
         private readonly List<IDataWriter<TData>> _writers = new List<IDataWriter<TData>>();
 
         private TData _data;
-        private bool _busy;
         private bool _disposed;
 
         protected DataProvider(ISaveLoadService saveLoadService)
@@ -22,10 +22,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders
 
         public void RegisterReader(IDataReader<TData> reader)
         {
-            EnsureAvailable();
-
-            if (reader == null)
-                throw new ArgumentNullException(nameof(reader));
+            EnsureNotDisposed();
 
             if (_readers.Contains(reader))
                 throw new ArgumentException("Reader already registered", nameof(reader));
@@ -35,10 +32,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders
 
         public void RegisterWriter(IDataWriter<TData> writer)
         {
-            EnsureAvailable();
-
-            if (writer == null)
-                throw new ArgumentNullException(nameof(writer));
+            EnsureNotDisposed();
 
             if (_writers.Contains(writer))
                 throw new ArgumentException("Writer already registered", nameof(writer));
@@ -58,68 +52,57 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders
 
         public async UniTask LoadAsync(CancellationToken cancellationToken = default)
         {
-            BeginOperation();
+            EnsureNotDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            TData loaded = await _saveLoadService.LoadAsync<TData>(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            EnsureNotDisposed();
+
+            if (loaded == null)
+                throw new SaveDataException(new InvalidDataException("Save contains null data"));
 
             try
             {
-                TData loaded = await _saveLoadService.LoadAsync<TData>(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (loaded == null)
-                    throw new InvalidOperationException("Save contains null data");
-
                 Validate(loaded);
-                _data = loaded;
-                SendToReaders();
             }
-            finally
+            catch (Exception exception) when (SaveDataException.IsExpectedFailure(exception))
             {
-                _busy = false;
+                throw new SaveDataException(exception);
             }
+
+            _data = loaded;
+            SendToReaders();
         }
 
         public async UniTask SaveAsync(CancellationToken cancellationToken = default)
         {
-            BeginOperation();
+            EnsureNotDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            try
-            {
-                if (_data == null)
-                    throw new InvalidOperationException("Load or reset data before saving");
+            if (_data == null)
+                throw new InvalidOperationException("Load or reset data before saving");
 
-                foreach (IDataWriter<TData> writer in _writers.ToArray())
-                    writer.WriteTo(_data);
+            foreach (IDataWriter<TData> writer in _writers.ToArray())
+                writer.WriteTo(_data);
 
-                Validate(_data);
-                await _saveLoadService.SaveAsync(_data, cancellationToken);
-            }
-            finally
-            {
-                _busy = false;
-            }
+            Validate(_data);
+            await _saveLoadService.SaveAsync(_data, cancellationToken);
         }
 
         public UniTask<bool> ExistsAsync(CancellationToken cancellationToken = default)
         {
-            EnsureAvailable();
+            EnsureNotDisposed();
             return _saveLoadService.ExistsAsync<TData>(cancellationToken);
         }
 
         public void Reset()
         {
-            BeginOperation();
-
-            try
-            {
-                TData origin = CreateOriginData();
-                Validate(origin);
-                _data = origin;
-                SendToReaders();
-            }
-            finally
-            {
-                _busy = false;
-            }
+            EnsureNotDisposed();
+            TData origin = CreateOriginData();
+            Validate(origin);
+            _data = origin;
+            SendToReaders();
         }
 
         public void Dispose()
@@ -140,19 +123,10 @@ namespace Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders
                 reader.ReadFrom(_data);
         }
 
-        private void BeginOperation()
-        {
-            EnsureAvailable();
-            _busy = true;
-        }
-
-        private void EnsureAvailable()
+        private void EnsureNotDisposed()
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().Name);
-
-            if (_busy)
-                throw new InvalidOperationException("A data operation is already running");
         }
     }
 }

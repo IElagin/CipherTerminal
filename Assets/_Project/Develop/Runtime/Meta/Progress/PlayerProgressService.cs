@@ -33,9 +33,9 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
         public PlayerProgressService(PlayerDataProvider provider, WalletService wallet,
             StatisticsService statistics, EconomyRules rules, CancellationToken projectToken)
         {
-            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
-            _statistics = statistics ?? throw new ArgumentNullException(nameof(statistics));
+            _provider = provider;
+            _wallet = wallet;
+            _statistics = statistics;
             _rules = rules;
             _projectToken = projectToken;
 
@@ -46,7 +46,6 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
         }
 
         public bool IsReady { get; private set; }
-        public bool IsBusy { get; private set; }
         public string Error { get; private set; }
         public int StatisticsResetCost => _rules.StatisticsResetCost;
 
@@ -69,7 +68,6 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
                 throw new InvalidOperationException("Player progress is already initialized");
 
             _initialized = true;
-            IsBusy = true;
             bool publish = false;
 
             using var linkedLifetime =
@@ -93,18 +91,10 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
 
                 publish = true;
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch
+            catch (SaveDataException)
             {
                 IsReady = false;
                 Error = LoadErrorMessage;
-            }
-            finally
-            {
-                IsBusy = false;
             }
 
             if (publish)
@@ -121,20 +111,13 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             if (IsReady == false)
                 return new ProgressOperationResult(ProgressOperationStatus.Unavailable);
 
-            if (IsBusy)
-                return new ProgressOperationResult(ProgressOperationStatus.Busy);
-
             _projectToken.ThrowIfCancellationRequested();
-            IsBusy = true;
-            bool publish = false;
-            ProgressOperationResult result;
+            int gold;
+            int wins;
+            int losses;
 
             try
             {
-                int gold;
-                int wins;
-                int losses;
-
                 checked
                 {
                     gold = state == SequenceState.Won
@@ -143,30 +126,21 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
                     wins = _statistics.Wins + (state == SequenceState.Won ? ResultCountIncrement : 0);
                     losses = _statistics.Losses + (state == SequenceState.Lost ? ResultCountIncrement : 0);
                 }
-
-                int delta = gold - _wallet.Gold;
-                _wallet.SetGold(gold);
-                _statistics.SetCounts(wins, losses);
-                publish = true;
-
-                ProgressOperationStatus status = await SaveCurrentAsync(_projectToken);
-                result = new ProgressOperationResult(status, delta);
             }
             catch (OverflowException)
             {
                 Error = UpdateErrorMessage;
-                publish = true;
-                result = new ProgressOperationResult(ProgressOperationStatus.Failed);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-
-            if (publish)
                 Changed?.Invoke(CreateSnapshot());
+                return new ProgressOperationResult(ProgressOperationStatus.Failed);
+            }
 
-            return result;
+            int delta = gold - _wallet.Gold;
+            _wallet.SetGold(gold);
+            _statistics.SetCounts(wins, losses);
+
+            ProgressOperationStatus status = await SaveCurrentAsync(_projectToken);
+            Changed?.Invoke(CreateSnapshot());
+            return new ProgressOperationResult(status, delta);
         }
 
         public async UniTask<ProgressOperationResult> ResetStatisticsAsync()
@@ -176,35 +150,17 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             if (IsReady == false)
                 return new ProgressOperationResult(ProgressOperationStatus.Unavailable);
 
-            if (IsBusy)
-                return new ProgressOperationResult(ProgressOperationStatus.Busy);
-
             _projectToken.ThrowIfCancellationRequested();
-            IsBusy = true;
-            bool publish = false;
-            ProgressOperationResult result;
 
-            try
-            {
-                if (_wallet.Gold < _rules.StatisticsResetCost)
-                    return new ProgressOperationResult(ProgressOperationStatus.InsufficientGold);
+            if (_wallet.Gold < _rules.StatisticsResetCost)
+                return new ProgressOperationResult(ProgressOperationStatus.InsufficientGold);
 
-                _wallet.SetGold(_wallet.Gold - _rules.StatisticsResetCost);
-                _statistics.SetCounts(0, 0);
-                publish = true;
+            _wallet.SetGold(_wallet.Gold - _rules.StatisticsResetCost);
+            _statistics.SetCounts(0, 0);
 
-                ProgressOperationStatus status = await SaveCurrentAsync(_projectToken);
-                result = new ProgressOperationResult(status, -_rules.StatisticsResetCost);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-
-            if (publish)
-                Changed?.Invoke(CreateSnapshot());
-
-            return result;
+            ProgressOperationStatus status = await SaveCurrentAsync(_projectToken);
+            Changed?.Invoke(CreateSnapshot());
+            return new ProgressOperationResult(status, -_rules.StatisticsResetCost);
         }
 
         public void Dispose()
@@ -228,11 +184,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
                 Error = null;
                 return ProgressOperationStatus.Completed;
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch
+            catch (SaveDataException)
             {
                 Error = SaveErrorMessage;
                 return ProgressOperationStatus.SavedInMemoryOnly;

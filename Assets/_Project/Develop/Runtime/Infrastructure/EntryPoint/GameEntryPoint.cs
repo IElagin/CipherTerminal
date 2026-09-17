@@ -23,55 +23,42 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
 
         public async UniTask Initialize(CancellationToken cancellationToken)
         {
-            try
-            {
-                Debug.Log("Start project: setup settings");
-                SetupAppSettings();
+            Debug.Log("Start project: setup settings");
+            SetupAppSettings();
 
-                StandardLoadingScreen loadingPrefab =
-                    Resources.Load<StandardLoadingScreen>("Utilities/StandardLoadingScreen");
+            StandardLoadingScreen loadingPrefab =
+                Resources.Load<StandardLoadingScreen>("Utilities/StandardLoadingScreen");
 
-                if (loadingPrefab == null)
-                    throw new InvalidOperationException("Loading screen prefab not found");
+            if (loadingPrefab == null)
+                throw new InvalidOperationException("Loading screen prefab not found");
 
-                AudioService audioPrefab = Resources.Load<AudioService>("Utilities/AudioService");
+            AudioService audioPrefab = Resources.Load<AudioService>("Utilities/AudioService");
 
-                if (audioPrefab == null)
-                    throw new InvalidOperationException("Audio service prefab not found");
+            if (audioPrefab == null)
+                throw new InvalidOperationException("Audio service prefab not found");
 
-                _loadingScreen = Instantiate(loadingPrefab);
-                _audioService = Instantiate(audioPrefab);
-                _loadingScreen.Show();
+            _loadingScreen = Instantiate(loadingPrefab);
+            _audioService = Instantiate(audioPrefab);
+            _loadingScreen.Show();
 
-                var builder = new ContainerBuilder();
-                ProjectContextRegistrations.Process(builder, _loadingScreen, _audioService, cancellationToken);
-                _projectContainer = builder.Build();
-                _sceneSwitcher = _projectContainer.Resolve<SceneSwitcherService>();
+            var builder = new ContainerBuilder();
+            ProjectContextRegistrations.Process(builder, _loadingScreen, _audioService, cancellationToken);
+            _projectContainer = builder.Build();
+            _sceneSwitcher = _projectContainer.Resolve<SceneSwitcherService>();
 
-                Debug.Log("Initialize project services");
-                ConfigsProviderService configs = _projectContainer.Resolve<ConfigsProviderService>();
-                await configs.LoadAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                _audioService.Initialize(configs.GetConfig<AudioCatalog>());
-                cancellationToken.ThrowIfCancellationRequested();
+            Debug.Log("Initialize project services");
+            ConfigsProviderService configs = _projectContainer.Resolve<ConfigsProviderService>();
+            await configs.LoadAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            _audioService.Initialize(configs.GetConfig<AudioCatalog>());
+            cancellationToken.ThrowIfCancellationRequested();
 
-                PlayerProgressService progress = _projectContainer.Resolve<PlayerProgressService>();
-                await progress.Initialize(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                Debug.Log("Project services initialized");
+            PlayerProgressService progress = _projectContainer.Resolve<PlayerProgressService>();
+            await progress.Initialize(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            Debug.Log("Project services initialized");
 
-                await _sceneSwitcher.SwitchAsync(Scenes.MainMenu);
-            }
-            catch
-            {
-                ReleaseServices();
-                throw;
-            }
-            finally
-            {
-                if (_loadingScreen != null)
-                    _loadingScreen.Hide();
-            }
+            await _sceneSwitcher.SwitchAsync(Scenes.MainMenu);
         }
 
         private void Awake()

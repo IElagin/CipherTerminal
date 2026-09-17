@@ -13,12 +13,11 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
         private readonly PlayerProgressService _progress;
 
         private bool _subscribed;
-        private bool _recorded;
 
         public GameplayProgressTracker(GameplayLoop loop, PlayerProgressService progress)
         {
-            _loop = loop ?? throw new ArgumentNullException(nameof(loop));
-            _progress = progress ?? throw new ArgumentNullException(nameof(progress));
+            _loop = loop;
+            _progress = progress;
         }
 
         public void Run()
@@ -41,10 +40,6 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
 
         private void OnFinished(SequenceState state)
         {
-            if (_recorded)
-                return;
-
-            _recorded = true;
             RecordAndReportAsync(state).Forget(AsyncErrors.Report);
         }
 
@@ -53,7 +48,6 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
             ProgressOperationResult result = await _progress.RecordResultAsync(state);
 
             if (result.Status == ProgressOperationStatus.Unavailable ||
-                result.Status == ProgressOperationStatus.Busy ||
                 result.Status == ProgressOperationStatus.Failed)
             {
                 Debug.LogError(_progress.Error ?? "Прогресс недоступен");

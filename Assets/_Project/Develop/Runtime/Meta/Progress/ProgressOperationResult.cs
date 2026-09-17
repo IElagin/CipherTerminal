@@ -6,7 +6,6 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
         SavedInMemoryOnly,
         InsufficientGold,
         Unavailable,
-        Busy,
         Failed
     }
 

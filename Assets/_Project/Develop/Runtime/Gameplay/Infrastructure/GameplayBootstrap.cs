@@ -42,10 +42,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
 
         public override void ProcessRegistrations(IContainerBuilder builder, IInputSceneArgs sceneArgs = null)
         {
-            if (sceneArgs is not GameplayInputArgs gameplayInputArgs)
-                throw new ArgumentException("Gameplay requires GameplayInputArgs", nameof(sceneArgs));
-
-            gameplayInputArgs.Validate(nameof(sceneArgs));
+            GameplayInputArgs gameplayInputArgs = (GameplayInputArgs)sceneArgs;
 
             GameplayContextRegistrations.Process(builder, gameplayInputArgs, _controller);
         }

@@ -10,7 +10,6 @@ namespace Assets._Project.Develop.Runtime.Gameplay
 
         private bool _running;
         private bool _stopped;
-        private bool _handlingInput;
         private bool _navigationRequested;
 
         public event Action Updated;
@@ -20,8 +19,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay
 
         public GameplayLoop(SequenceSession session, GameplayInputArgs gameplayInputArgs)
         {
-            Session = session ?? throw new ArgumentNullException(nameof(session));
-            _gameplayInputArgs = gameplayInputArgs ?? throw new ArgumentNullException(nameof(gameplayInputArgs));
+            Session = session;
+            _gameplayInputArgs = gameplayInputArgs;
         }
 
         public SequenceSession Session { get; }
@@ -36,54 +35,25 @@ namespace Assets._Project.Develop.Runtime.Gameplay
                 throw new InvalidOperationException("Initialize the sequence session before running gameplay");
 
             _running = true;
-            _handlingInput = true;
 
-            try
-            {
-                Updated?.Invoke();
-            }
-            finally
-            {
-                _handlingInput = false;
-            }
+            Updated?.Invoke();
         }
 
         public void Submit(char character)
         {
-            if (_running == false || _stopped || _handlingInput || _navigationRequested)
+            if (_running == false || _stopped || _navigationRequested)
                 return;
 
-            _handlingInput = true;
-
-            try
-            {
-                if (Session.State == SequenceState.Input)
-                {
-                    SubmitSequenceCharacter(character);
-                    return;
-                }
-
-                if (character == ' ')
-                    RequestNavigation();
-            }
-            finally
-            {
-                _handlingInput = false;
-            }
+            if (Session.State == SequenceState.Input)
+                SubmitSequenceCharacter(character);
+            else if (character == ' ')
+                RequestNavigation();
         }
 
         public void Stop()
         {
             _stopped = true;
             _running = false;
-        }
-
-        public void AllowNavigationRetry()
-        {
-            if (_stopped || Session.State == SequenceState.Input)
-                return;
-
-            _navigationRequested = false;
         }
 
         private void SubmitSequenceCharacter(char character)
@@ -99,13 +69,9 @@ namespace Assets._Project.Develop.Runtime.Gameplay
             };
 
             InputEvaluated?.Invoke(evaluation);
-
-            if (_running == false || _stopped)
-                return;
-
             Updated?.Invoke();
 
-            if (_running && _stopped == false && Session.State != SequenceState.Input)
+            if (Session.State != SequenceState.Input)
                 Finished?.Invoke(Session.State);
         }
 

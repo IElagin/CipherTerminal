@@ -4,6 +4,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using Assets._Project.Develop.Runtime.Gameplay;
+using Assets._Project.Develop.Runtime.Gameplay.Infrastructure;
 using Assets._Project.Develop.Runtime.Gameplay.Sequence;
 using Assets._Project.Develop.Runtime.Meta.Progress;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment;
@@ -31,11 +33,14 @@ namespace Assets._Project.Develop.Editor
             {
                 await CheckFirstStartAndReloadAsync(rootPath, rules, results);
                 await CheckOutcomeAccountingAsync(rootPath, rules, results);
+                await CheckGameplayTrackingAsync(rootPath, rules, results);
                 await CheckPaidResetAsync(rootPath, results);
                 await CheckInvalidSavesAsync(rootPath, rules, results);
                 await CheckSaveRetryAsync(rootPath, rules, results);
                 await CheckCancellationAsync(rootPath, rules, results);
                 await CheckOverflowAsync(rootPath, rules, results);
+                await CheckExceptionBoundariesAsync(rootPath, rules, results);
+                await CheckInternalParticipantErrorsAsync(rootPath, rules, results);
                 CheckSerialization(results);
 
                 return string.Join("\n", results);
@@ -83,6 +88,47 @@ namespace Assets._Project.Develop.Editor
             Require(outcomeProgress.Snapshot.Equals(expectedOutcomeProgress) && outcomeChangeCount == expectedOutcomeChangeCount,
                 "reward, penalty, floor and one snapshot event per result stay coherent", results);
             outcomeProgress.Dispose();
+        }
+
+        private static async Task CheckGameplayTrackingAsync(string rootPath, EconomyRules rules, List<string> results)
+        {
+            const int levelNumber = 1;
+            const int oneResult = 1;
+            const string target = "1";
+            SequenceState[] outcomes = { SequenceState.Won, SequenceState.Lost };
+
+            foreach (SequenceState outcome in outcomes)
+            {
+                string storePath = Path.Combine(rootPath, "tracked-" + outcome);
+                using PlayerProgressService progress = CreateService(storePath, rules);
+                await progress.Initialize();
+                var session = new SequenceSession(new SequenceGenerator(new Random()));
+                session.Initialize(target, target.Length);
+                var loop = new GameplayLoop(session, new GameplayInputArgs(levelNumber, SequenceMode.Digits));
+                using var tracker = new GameplayProgressTracker(loop, progress);
+                tracker.Run();
+                loop.Run();
+                char character = outcome == SequenceState.Won ? '1' : '9';
+                loop.Submit(character);
+                loop.Submit(character);
+                loop.Submit(' ');
+
+                int expectedGold = outcome == SequenceState.Won
+                    ? rules.InitialGold + rules.WinReward
+                    : rules.InitialGold - rules.LossPenalty;
+                int expectedWins = outcome == SequenceState.Won ? oneResult : 0;
+                int expectedLosses = outcome == SequenceState.Lost ? oneResult : 0;
+                var expected = new ProgressSnapshot(expectedGold, expectedWins, expectedLosses);
+
+                // This file repository completes its UniTask synchronously.
+                Require(progress.Snapshot.Equals(expected),
+                    "gameplay tracker records " + outcome + " once despite later terminal input", results);
+
+                using PlayerProgressService reloaded = CreateService(storePath, rules);
+                await reloaded.Initialize();
+                Require(reloaded.Snapshot.Equals(expected),
+                    "tracked " + outcome + " is persisted once", results);
+            }
         }
 
         private static async Task CheckPaidResetAsync(string rootPath, List<string> results)
@@ -232,6 +278,164 @@ namespace Assets._Project.Develop.Editor
             overflowProgress.Dispose();
         }
 
+        private static async Task CheckExceptionBoundariesAsync(string rootPath, EconomyRules rules,
+            List<string> results)
+        {
+            string boundaryPath = Path.Combine(rootPath, "exception-boundary");
+            var realRepository = new LocalFileDataRepository(boundaryPath, "json");
+
+            using (PlayerProgressService seed = CreateService(realRepository, rules))
+                await seed.Initialize();
+
+            Exception[] programmingErrors =
+            {
+                new InvalidOperationException("Injected programming error"),
+                new NullReferenceException("Injected missing internal dependency"),
+                new OperationCanceledException("Injected operation cancellation")
+            };
+
+            foreach (Exception expected in programmingErrors)
+            {
+                string exceptionName = expected.GetType().Name;
+                var loadRepository = new ErrorRepository(realRepository) { ReadError = expected };
+                using (PlayerProgressService loadProgress = CreateService(loadRepository, rules))
+                {
+                    Exception observed = await ObserveExceptionAsync(() => loadProgress.Initialize());
+                    Require(MatchesExpectedException(observed, expected) && loadProgress.Error == null,
+                        "load propagates " + exceptionName + " without a save-error message", results);
+                }
+
+                var writeRepository = new ErrorRepository(realRepository) { WriteError = expected };
+                using (PlayerProgressService writeProgress = CreateService(writeRepository, rules))
+                {
+                    await writeProgress.Initialize();
+                    Exception observed = await ObserveExceptionAsync(async () =>
+                    {
+                        await writeProgress.RecordResultAsync(SequenceState.Won);
+                    });
+                    Require(MatchesExpectedException(observed, expected) && writeProgress.Error == null,
+                        "save propagates " + exceptionName + " without a save-error result", results);
+                }
+            }
+
+            Exception[] storageErrors =
+            {
+                new IOException("Injected disk failure"),
+                new InvalidDataException("Injected invalid saved document"),
+                new UnauthorizedAccessException("Injected denied file access"),
+                new Newtonsoft.Json.JsonSerializationException("Injected serialization failure")
+            };
+
+            foreach (Exception expected in storageErrors)
+            {
+                string exceptionName = expected.GetType().Name;
+                var loadRepository = new ErrorRepository(realRepository) { ReadError = expected };
+                using (PlayerProgressService loadProgress = CreateService(loadRepository, rules))
+                {
+                    await loadProgress.Initialize();
+                    Require(loadProgress.IsReady == false && loadProgress.Error == PlayerProgressService.LoadErrorMessage,
+                        "load reports expected " + exceptionName, results);
+                }
+
+                var writeRepository = new ErrorRepository(realRepository) { WriteError = expected };
+                using (PlayerProgressService writeProgress = CreateService(writeRepository, rules))
+                {
+                    await writeProgress.Initialize();
+                    ProgressOperationResult result = await writeProgress.RecordResultAsync(SequenceState.Won);
+                    Require(result.Status == ProgressOperationStatus.SavedInMemoryOnly &&
+                            writeProgress.Snapshot.Gold == rules.InitialGold + rules.WinReward &&
+                            writeProgress.Error == PlayerProgressService.SaveErrorMessage,
+                        "save retains memory after expected " + exceptionName, results);
+                }
+            }
+        }
+
+        private static async Task CheckInternalParticipantErrorsAsync(string rootPath, EconomyRules rules,
+            List<string> results)
+        {
+            var repository = new LocalFileDataRepository(Path.Combine(rootPath, "internal-participants"), "json");
+
+            using (PlayerProgressService seed = CreateService(repository, rules))
+                await seed.Initialize();
+
+            Exception[] failures =
+            {
+                new Newtonsoft.Json.JsonSerializationException("Internal participant failed"),
+                new InvalidDataException("Internal participant failed")
+            };
+
+            foreach (Exception expected in failures)
+            {
+                string exceptionName = expected.GetType().Name;
+                var participant = new FailingParticipant(expected);
+
+                using (PlayerProgressService progress = CreateService(repository, rules,
+                    prepareProvider: provider => provider.RegisterReader(participant)))
+                {
+                    Exception observed = await ObserveExceptionAsync(() => progress.Initialize());
+                    Require(ReferenceEquals(observed, expected) && progress.Error == null,
+                        "internal reader " + exceptionName + " is not a load failure", results);
+                }
+
+                using (PlayerProgressService progress = CreateService(repository, rules,
+                    prepareProvider: provider => provider.RegisterWriter(participant)))
+                {
+                    await progress.Initialize();
+                    Exception observed = await ObserveExceptionAsync(async () =>
+                    {
+                        await progress.RecordResultAsync(SequenceState.Won);
+                    });
+                    Require(ReferenceEquals(observed, expected) && progress.Error == null,
+                        "internal writer " + exceptionName + " is not a save failure", results);
+                }
+
+                var newRepository = new LocalFileDataRepository(
+                    Path.Combine(rootPath, "internal-first-save-" + exceptionName), "json");
+
+                using (PlayerProgressService progress = CreateService(newRepository, rules,
+                    prepareProvider: provider => provider.RegisterWriter(participant)))
+                {
+                    Exception observed = await ObserveExceptionAsync(() => progress.Initialize());
+                    Require(ReferenceEquals(observed, expected) && progress.Error == null,
+                        "first-save internal " + exceptionName + " propagates through Initialize", results);
+                }
+            }
+
+            using (PlayerProgressService progress = CreateService(repository, rules,
+                prepareProvider: provider => provider.RegisterWriter(new InvalidStateWriter())))
+            {
+                await progress.Initialize();
+                Exception observed = await ObserveExceptionAsync(async () =>
+                {
+                    await progress.RecordResultAsync(SequenceState.Won);
+                });
+                Require(observed is Newtonsoft.Json.JsonSerializationException && progress.Error == null,
+                    "invalid in-memory state is not mislabeled as an external save failure", results);
+            }
+        }
+
+        private static bool MatchesExpectedException(Exception observed, Exception expected)
+        {
+            if (expected is OperationCanceledException expectedCancellation)
+                return observed is OperationCanceledException observedCancellation &&
+                       observedCancellation.CancellationToken == expectedCancellation.CancellationToken;
+
+            return ReferenceEquals(observed, expected);
+        }
+
+        private static async Task<Exception> ObserveExceptionAsync(Func<UniTask> action)
+        {
+            try
+            {
+                await action();
+                return null;
+            }
+            catch (Exception exception)
+            {
+                return exception;
+            }
+        }
+
         private static void CheckSerialization(List<string> results)
         {
             var serializer = new JsonSerializer();
@@ -244,14 +448,17 @@ namespace Assets._Project.Develop.Editor
             => CreateService(new LocalFileDataRepository(rootPath, "json"), rules);
 
         private static PlayerProgressService CreateService(IDataRepository repository, EconomyRules rules,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default, Action<PlayerDataProvider> prepareProvider = null)
         {
             var wallet = new WalletService();
             var statistics = new StatisticsService();
             var serializer = new JsonSerializer();
             var saveLoad = new SaveLoadService(serializer, new MapDataKeysStorage(), repository);
             var provider = new PlayerDataProvider(saveLoad, rules);
-            return new PlayerProgressService(provider, wallet, statistics, rules, cancellationToken);
+            var progress = new PlayerProgressService(provider, wallet, statistics, rules, cancellationToken);
+            prepareProvider?.Invoke(provider);
+
+            return progress;
         }
 
         private static void Require(bool condition, string label, ICollection<string> results)
@@ -260,6 +467,53 @@ namespace Assets._Project.Develop.Editor
                 throw new InvalidOperationException(label);
 
             results.Add("PASS: " + label);
+        }
+
+        private sealed class FailingParticipant : IDataReader<PlayerData>, IDataWriter<PlayerData>
+        {
+            private readonly Exception _failure;
+
+            public FailingParticipant(Exception failure) => _failure = failure;
+
+            public void ReadFrom(PlayerData data) => throw _failure;
+
+            public void WriteTo(PlayerData data) => throw _failure;
+        }
+
+        private sealed class InvalidStateWriter : IDataWriter<PlayerData>
+        {
+            private const int InvalidGold = -1;
+
+            public void WriteTo(PlayerData data) => data.Gold = InvalidGold;
+        }
+
+        private sealed class ErrorRepository : IDataRepository
+        {
+            private readonly IDataRepository _inner;
+
+            public Exception ReadError;
+            public Exception WriteError;
+
+            public ErrorRepository(IDataRepository inner) => _inner = inner;
+
+            public UniTask<string> ReadAsync(string key, CancellationToken cancellationToken = default)
+            {
+                if (ReadError != null)
+                    throw ReadError;
+
+                return _inner.ReadAsync(key, cancellationToken);
+            }
+
+            public UniTask WriteAsync(string key, string serializedData, CancellationToken cancellationToken = default)
+            {
+                if (WriteError != null)
+                    throw WriteError;
+
+                return _inner.WriteAsync(key, serializedData, cancellationToken);
+            }
+
+            public UniTask<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
+                => _inner.ExistsAsync(key, cancellationToken);
         }
 
         private sealed class FailOnceWriteRepository : IDataRepository
