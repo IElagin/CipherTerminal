@@ -184,7 +184,10 @@ namespace Assets._Project.Develop.Editor
 
             CreateScene();
             CreateCamera();
-            new GameObject("GameEntryPoint").AddComponent<GameEntryPoint>();
+            var projectScope = new GameObject("ProjectLifetimeScope").AddComponent<ProjectLifetimeScope>();
+            projectScope.autoRun = false;
+            var entryPoint = new GameObject("GameEntryPoint").AddComponent<GameEntryPoint>();
+            SetObjectReference(entryPoint, "_projectScope", projectScope);
             SaveScene("GameEntryPoint");
 
             CreateMenu();

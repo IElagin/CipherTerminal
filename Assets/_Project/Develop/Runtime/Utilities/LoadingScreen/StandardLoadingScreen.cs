@@ -9,7 +9,6 @@ namespace Assets._Project.Develop.Runtime.Utilities.LoadingScreen
         private void Awake()
         {
             Hide();
-            DontDestroyOnLoad(this);
         }
 
         public void Hide() => gameObject.SetActive(false);

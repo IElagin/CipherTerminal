@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using VContainer;
+using VContainer.Unity;
 using UnityEngine;
 using Assets._Project.Develop.Runtime.Meta.Configs;
 using Assets._Project.Develop.Runtime.Meta.Progress;
@@ -22,12 +23,14 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
 {
     public static class ProjectContextRegistrations
     {
-        public static void Process(IContainerBuilder builder, ILoadingScreen loadingScreen,
-            AudioService audioService, CancellationToken projectToken)
+        public static void Process(IContainerBuilder builder, Transform projectRoot,
+            CancellationToken projectToken)
         {
-            builder.RegisterInstance(loadingScreen);
-            builder.RegisterInstance(audioService).As<IAudioService>();
             builder.Register<ResourcesAssetLoader>(Lifetime.Singleton);
+            builder.RegisterComponentInNewPrefab(LoadLoadingScreen, Lifetime.Singleton)
+                .UnderTransform(projectRoot).As<ILoadingScreen>();
+            builder.RegisterComponentInNewPrefab(LoadAudioService, Lifetime.Singleton)
+                .UnderTransform(projectRoot).As<IAudioService>();
             builder.Register<ResourcesConfigsLoader>(Lifetime.Singleton).As<IConfigsLoader>();
             builder.Register(CreateConfigsProvider, Lifetime.Singleton);
             builder.Register<JsonSerializer>(Lifetime.Singleton).As<IDataSerializer>();
@@ -58,6 +61,28 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
 
                 return new SceneSwitcherService(loader, screen, container, projectToken);
             }
+        }
+
+        private static StandardLoadingScreen LoadLoadingScreen(IObjectResolver container)
+        {
+            StandardLoadingScreen prefab = container.Resolve<ResourcesAssetLoader>()
+                .Load<StandardLoadingScreen>("Utilities/StandardLoadingScreen");
+
+            if (prefab == null)
+                throw new InvalidOperationException("Loading screen prefab not found");
+
+            return prefab;
+        }
+
+        private static AudioService LoadAudioService(IObjectResolver container)
+        {
+            AudioService prefab = container.Resolve<ResourcesAssetLoader>()
+                .Load<AudioService>("Utilities/AudioService");
+
+            if (prefab == null)
+                throw new InvalidOperationException("Audio service prefab not found");
+
+            return prefab;
         }
 
         private static ConfigsProviderService CreateConfigsProvider(IObjectResolver container)

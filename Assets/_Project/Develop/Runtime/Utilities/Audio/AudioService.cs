@@ -41,11 +41,6 @@ namespace Assets._Project.Develop.Runtime.Utilities.Audio
             _ambientSource.Play();
         }
 
-        private void Awake()
-        {
-            DontDestroyOnLoad(gameObject);
-        }
-
         public void Play(AudioCue cue)
         {
             if (_initialized == false)
