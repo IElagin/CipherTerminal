@@ -139,9 +139,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
                 delta = -penalty;
             }
 
-            ProgressOperationStatus status = await SaveCurrentAsync(_projectToken);
-            Changed?.Invoke(CreateSnapshot());
-            return new ProgressOperationResult(status, delta);
+            return await PublishAndSaveAsync(delta);
         }
 
         public async UniTask<ProgressOperationResult> ResetStatisticsAsync()
@@ -159,9 +157,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             _wallet.Spend(CurrencyTypes.Gold, _rules.StatisticsResetCost);
             _statistics.Reset();
 
-            ProgressOperationStatus status = await SaveCurrentAsync(_projectToken);
-            Changed?.Invoke(CreateSnapshot());
-            return new ProgressOperationResult(status, -_rules.StatisticsResetCost);
+            return await PublishAndSaveAsync(-_rules.StatisticsResetCost);
         }
 
         public void Dispose()
@@ -175,6 +171,18 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             _provider.UnregisterReader(_statistics);
             _provider.UnregisterWriter(_wallet);
             _provider.UnregisterWriter(_statistics);
+        }
+
+        private async UniTask<ProgressOperationResult> PublishAndSaveAsync(int goldDelta)
+        {
+            Changed?.Invoke(CreateSnapshot());
+            string previousError = Error;
+            ProgressOperationStatus status = await SaveCurrentAsync(_projectToken);
+
+            if (Error != previousError)
+                Changed?.Invoke(CreateSnapshot());
+
+            return new ProgressOperationResult(status, goldDelta);
         }
 
         private async UniTask<ProgressOperationStatus> SaveCurrentAsync(CancellationToken cancellationToken)

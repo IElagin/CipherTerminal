@@ -180,9 +180,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Presentation
             _walletView.Render(snapshot.Gold, snapshot.Wins, snapshot.Losses,
                 _progress.StatisticsResetCost);
             RefreshInteractability();
-
-            if (string.IsNullOrEmpty(_progress.Error) == false)
-                _walletView.ShowStatus(_progress.Error, true);
+            ShowPersistentStatus();
         }
 
         private void RefreshProgress()
