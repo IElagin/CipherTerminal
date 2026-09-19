@@ -13,6 +13,7 @@ using Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.DataRepository;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.KeysStorage;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.Serializers;
+using Assets._Project.Develop.Runtime.Utilities.Reactive;
 
 namespace Assets._Project.Develop.Editor
 {
@@ -32,6 +33,7 @@ namespace Assets._Project.Develop.Editor
             try
             {
                 await CheckFirstStartAndReloadAsync(rootPath, rules, results);
+                await CheckLegacySaveAsync(rootPath, rules, results);
                 await CheckOutcomeAccountingAsync(rootPath, rules, results);
                 await CheckGameplayTrackingAsync(rootPath, rules, results);
                 await CheckPaidResetAsync(rootPath, results);
@@ -88,6 +90,32 @@ namespace Assets._Project.Develop.Editor
             Require(outcomeProgress.Snapshot.Equals(expectedOutcomeProgress) && outcomeChangeCount == expectedOutcomeChangeCount,
                 "reward, penalty, floor and one snapshot event per result stay coherent", results);
             outcomeProgress.Dispose();
+        }
+
+        private static async Task CheckLegacySaveAsync(string rootPath, EconomyRules rules, List<string> results)
+        {
+            string legacyPath = Path.Combine(rootPath, "legacy");
+            Directory.CreateDirectory(legacyPath);
+            const string legacyJson = "{\"schemaVersion\":1,\"gold\":73,\"wins\":2,\"losses\":3}";
+            string savePath = Path.Combine(legacyPath, "player.json");
+            File.WriteAllText(savePath, legacyJson);
+            var expectedLoaded = new ProgressSnapshot(73, 2, 3);
+
+            using (PlayerProgressService progress = CreateService(legacyPath, rules))
+            {
+                await progress.Initialize();
+                Require(progress.Snapshot.Equals(expectedLoaded) && File.ReadAllText(savePath) == legacyJson,
+                    "existing schema-1 JSON loads without rewriting or migration", results);
+                await progress.RecordResultAsync(SequenceState.Won);
+                ProgressOperationResult reset = await progress.ResetStatisticsAsync();
+                int expectedGold = expectedLoaded.Gold + rules.WinReward - rules.StatisticsResetCost;
+                var expectedReset = new ProgressSnapshot(expectedGold, 0, 0);
+                using PlayerProgressService reloaded = CreateService(legacyPath, rules);
+                await reloaded.Initialize();
+                Require(reset.Status == ProgressOperationStatus.Completed &&
+                        reset.GoldDelta == -rules.StatisticsResetCost && reloaded.Snapshot.Equals(expectedReset),
+                    "course wallet and statistics round-trip legacy save after reward and one paid reset", results);
+            }
         }
 
         private static async Task CheckGameplayTrackingAsync(string rootPath, EconomyRules rules, List<string> results)
@@ -262,20 +290,32 @@ namespace Assets._Project.Develop.Editor
 
         private static async Task CheckOverflowAsync(string rootPath, EconomyRules rules, List<string> results)
         {
-            string overflowPath = Path.Combine(rootPath, "overflow");
-            Directory.CreateDirectory(overflowPath);
-            const int overflowValue = int.MaxValue;
-            string overflowJson = "{\"schemaVersion\":1,\"gold\":" + overflowValue +
-                                  ",\"wins\":" + overflowValue + ",\"losses\":0}";
-            File.WriteAllText(Path.Combine(overflowPath, "player.json"), overflowJson);
-            PlayerProgressService overflowProgress = CreateService(overflowPath, rules);
-            await overflowProgress.Initialize();
-            ProgressSnapshot beforeOverflow = overflowProgress.Snapshot;
-            ProgressOperationResult overflowResult = await overflowProgress.RecordResultAsync(SequenceState.Won);
-            Require(overflowResult.Status == ProgressOperationStatus.Failed &&
-                    overflowProgress.Snapshot.Equals(beforeOverflow),
-                "overflow cannot partially mutate progress", results);
-            overflowProgress.Dispose();
+            PlayerData[] scenarios =
+            {
+                new PlayerData(int.MaxValue, int.MaxValue, 0),
+                new PlayerData(int.MaxValue, 0, 0),
+                new PlayerData(rules.InitialGold, int.MaxValue, 0),
+                new PlayerData(rules.InitialGold, 0, int.MaxValue)
+            };
+            var serializer = new JsonSerializer();
+
+            for (int index = 0; index < scenarios.Length; index++)
+            {
+                PlayerData data = scenarios[index];
+                string overflowPath = Path.Combine(rootPath, "overflow-" + index);
+                Directory.CreateDirectory(overflowPath);
+                string savePath = Path.Combine(overflowPath, "player.json");
+                string overflowJson = serializer.Serialize(data);
+                File.WriteAllText(savePath, overflowJson);
+                using PlayerProgressService progress = CreateService(overflowPath, rules);
+                await progress.Initialize();
+                ProgressSnapshot before = progress.Snapshot;
+                SequenceState outcome = data.Losses == int.MaxValue ? SequenceState.Lost : SequenceState.Won;
+                ProgressOperationResult result = await progress.RecordResultAsync(outcome);
+                Require(result.Status == ProgressOperationStatus.Failed && progress.Snapshot.Equals(before) &&
+                        File.ReadAllText(savePath) == overflowJson,
+                    "overflow preserves all service state and saved data: scenario " + index, results);
+            }
         }
 
         private static async Task CheckExceptionBoundariesAsync(string rootPath, EconomyRules rules,
@@ -450,7 +490,10 @@ namespace Assets._Project.Develop.Editor
         private static PlayerProgressService CreateService(IDataRepository repository, EconomyRules rules,
             CancellationToken cancellationToken = default, Action<PlayerDataProvider> prepareProvider = null)
         {
-            var wallet = new WalletService();
+            var wallet = new WalletService(new Dictionary<CurrencyTypes, ReactiveVariable<int>>
+            {
+                [CurrencyTypes.Gold] = new ReactiveVariable<int>()
+            });
             var statistics = new StatisticsService();
             var serializer = new JsonSerializer();
             var saveLoad = new SaveLoadService(serializer, new MapDataKeysStorage(), repository);

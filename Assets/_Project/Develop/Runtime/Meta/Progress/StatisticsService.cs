@@ -5,6 +5,8 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
 {
     public sealed class StatisticsService : IDataReader<PlayerData>, IDataWriter<PlayerData>
     {
+        private const int ResultCountIncrement = 1;
+
         public int Wins { get; private set; }
         public int Losses { get; private set; }
 
@@ -20,10 +22,14 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
             data.Losses = Losses;
         }
 
-        internal void SetCounts(int wins, int losses)
+        public void RecordWin() => Wins = checked(Wins + ResultCountIncrement);
+
+        public void RecordLoss() => Losses = checked(Losses + ResultCountIncrement);
+
+        public void Reset()
         {
-            Wins = wins;
-            Losses = losses;
+            Wins = 0;
+            Losses = 0;
         }
     }
 }

@@ -9,8 +9,6 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
 {
     public sealed class PlayerProgressService : IDisposable
     {
-        private const int ResultCountIncrement = 1;
-
         public const string LoadErrorMessage =
             "Не удалось загрузить прогресс. Сохранённые данные не изменены.";
 
@@ -112,31 +110,34 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
                 return new ProgressOperationResult(ProgressOperationStatus.Unavailable);
 
             _projectToken.ThrowIfCancellationRequested();
-            int gold;
-            int wins;
-            int losses;
+            int gold = _wallet.GetCurrency(CurrencyTypes.Gold).Value;
+            bool wouldOverflow = state == SequenceState.Won
+                ? gold > int.MaxValue - _rules.WinReward || _statistics.Wins == int.MaxValue
+                : _statistics.Losses == int.MaxValue;
 
-            try
-            {
-                checked
-                {
-                    gold = state == SequenceState.Won
-                        ? _wallet.Gold + _rules.WinReward
-                        : Math.Max(0, _wallet.Gold - _rules.LossPenalty);
-                    wins = _statistics.Wins + (state == SequenceState.Won ? ResultCountIncrement : 0);
-                    losses = _statistics.Losses + (state == SequenceState.Lost ? ResultCountIncrement : 0);
-                }
-            }
-            catch (OverflowException)
+            // Validate the complete result before either service mutates loaded progress.
+            if (wouldOverflow)
             {
                 Error = UpdateErrorMessage;
                 Changed?.Invoke(CreateSnapshot());
                 return new ProgressOperationResult(ProgressOperationStatus.Failed);
             }
 
-            int delta = gold - _wallet.Gold;
-            _wallet.SetGold(gold);
-            _statistics.SetCounts(wins, losses);
+            int delta;
+
+            if (state == SequenceState.Won)
+            {
+                _wallet.Add(CurrencyTypes.Gold, _rules.WinReward);
+                _statistics.RecordWin();
+                delta = _rules.WinReward;
+            }
+            else
+            {
+                int penalty = Math.Min(gold, _rules.LossPenalty);
+                _wallet.Spend(CurrencyTypes.Gold, penalty);
+                _statistics.RecordLoss();
+                delta = -penalty;
+            }
 
             ProgressOperationStatus status = await SaveCurrentAsync(_projectToken);
             Changed?.Invoke(CreateSnapshot());
@@ -152,11 +153,11 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
 
             _projectToken.ThrowIfCancellationRequested();
 
-            if (_wallet.Gold < _rules.StatisticsResetCost)
+            if (_wallet.HasEnough(CurrencyTypes.Gold, _rules.StatisticsResetCost) == false)
                 return new ProgressOperationResult(ProgressOperationStatus.InsufficientGold);
 
-            _wallet.SetGold(_wallet.Gold - _rules.StatisticsResetCost);
-            _statistics.SetCounts(0, 0);
+            _wallet.Spend(CurrencyTypes.Gold, _rules.StatisticsResetCost);
+            _statistics.Reset();
 
             ProgressOperationStatus status = await SaveCurrentAsync(_projectToken);
             Changed?.Invoke(CreateSnapshot());
@@ -192,7 +193,7 @@ namespace Assets._Project.Develop.Runtime.Meta.Progress
         }
 
         private ProgressSnapshot CreateSnapshot()
-            => new ProgressSnapshot(_wallet.Gold, _statistics.Wins, _statistics.Losses);
+            => new ProgressSnapshot(_wallet.GetCurrency(CurrencyTypes.Gold).Value, _statistics.Wins, _statistics.Losses);
 
         private void EnsureNotDisposed()
         {

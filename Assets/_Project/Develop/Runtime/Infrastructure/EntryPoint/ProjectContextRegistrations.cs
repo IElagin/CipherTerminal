@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using VContainer;
@@ -13,6 +15,7 @@ using Assets._Project.Develop.Runtime.Utilities.DataManagment.DataRepository;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.KeysStorage;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.Serializers;
 using Assets._Project.Develop.Runtime.Utilities.LoadingScreen;
+using Assets._Project.Develop.Runtime.Utilities.Reactive;
 using Assets._Project.Develop.Runtime.Utilities.SceneManagement;
 
 namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
@@ -31,7 +34,7 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
             builder.Register<MapDataKeysStorage>(Lifetime.Singleton).As<IDataKeysStorage>();
             builder.Register(CreateLocalFileRepository, Lifetime.Singleton).As<IDataRepository>();
             builder.Register<SaveLoadService>(Lifetime.Singleton).As<ISaveLoadService>();
-            builder.Register<WalletService>(Lifetime.Singleton);
+            builder.Register(CreateWalletService, Lifetime.Singleton);
             builder.Register<StatisticsService>(Lifetime.Singleton);
             builder.Register(CreatePlayerDataProvider, Lifetime.Singleton);
             builder.Register(CreatePlayerProgress, Lifetime.Singleton);
@@ -73,6 +76,16 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
             EconomyRules rules = container.Resolve<ConfigsProviderService>().GetConfig<EconomyConfig>().Rules;
 
             return new PlayerDataProvider(saveLoad, rules);
+        }
+
+        private static WalletService CreateWalletService(IObjectResolver container)
+        {
+            var currencies = new Dictionary<CurrencyTypes, ReactiveVariable<int>>();
+
+            foreach (CurrencyTypes currencyType in Enum.GetValues(typeof(CurrencyTypes)))
+                currencies[currencyType] = new ReactiveVariable<int>();
+
+            return new WalletService(currencies);
         }
     }
 }

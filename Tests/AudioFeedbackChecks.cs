@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using TMPro;
 using Assets._Project.Develop.Runtime.Gameplay;
 using Assets._Project.Develop.Runtime.Gameplay.Presentation;
 using Assets._Project.Develop.Runtime.Meta.Presentation;
@@ -17,6 +18,8 @@ using Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.DataRepository;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.KeysStorage;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.Serializers;
+using Assets._Project.Develop.Runtime.Utilities.Reactive;
+using Assets._Project.Develop.Runtime.Utilities.Input;
 
 public static class AudioFeedbackChecks
 {
@@ -39,20 +42,38 @@ public static class AudioFeedbackChecks
             var saveLoad = new SaveLoadService(new JsonSerializer(), new MapDataKeysStorage(),
                 new LocalFileDataRepository(scratchPath, "json"));
             var provider = new PlayerDataProvider(saveLoad, rules);
-            progressService = new PlayerProgressService(provider, new WalletService(), new StatisticsService(),
+            var wallet = new WalletService(new Dictionary<CurrencyTypes, ReactiveVariable<int>>
+            {
+                [CurrencyTypes.Gold] = new ReactiveVariable<int>()
+            });
+            var statistics = new StatisticsService();
+            progressService = new PlayerProgressService(provider, wallet, statistics,
                 rules, default);
             await progressService.Initialize();
+            statistics.RecordWin();
+            statistics.RecordLoss();
 
             menuRoot = PrefabUtility.LoadPrefabContents("Assets/_Project/Prefabs/UI/MainMenuScreen.prefab");
             var controller = menuRoot.AddComponent<MainMenuController>();
             SetField(controller, "_view", menuRoot.GetComponentInChildren<TerminalView>(true));
-            SetField(controller, "_walletView", menuRoot.GetComponentInChildren<WalletPanelView>(true));
+            var walletView = menuRoot.GetComponentInChildren<WalletPanelView>(true);
+            SetField(controller, "_walletView", walletView);
+            SetField(controller, "_keyboard", menuRoot.AddComponent<TerminalKeyboard>());
             var audio = new RecordingAudio();
             controller.Initialize(null, audio, progressService);
+            controller.Run();
+            const string recordedCount = "1";
+            Require(Text(walletView, "_gold") == initialGold.ToString() &&
+                    Text(walletView, "_wins") == recordedCount && Text(walletView, "_losses") == recordedCount,
+                "menu renders initial wallet and service-owned statistics", results);
             MethodInfo resetStatisticsMethod = typeof(MainMenuController).GetMethod("ResetStatisticsAsync", PrivateInstanceFlags);
 
             await (UniTask)resetStatisticsMethod.Invoke(controller, null);
             Require(progressService.Snapshot.Gold == 0, "successful reset exercises the actual paid-reset path", results);
+            const string resetValue = "0";
+            Require(Text(walletView, "_gold") == resetValue && Text(walletView, "_wins") == resetValue &&
+                    Text(walletView, "_losses") == resetValue && walletView.ResetButton.interactable,
+                "paid reset updates the existing prefab UI and restores interaction", results);
             RequireSingleCue(audio, AudioCue.Key,
                 "successful statistics reset uses button feedback without victory voice", results);
 
@@ -98,6 +119,9 @@ public static class AudioFeedbackChecks
 
     private static void SetField(object owner, string fieldName, object value)
         => owner.GetType().GetField(fieldName, PrivateInstanceFlags).SetValue(owner, value);
+
+    private static string Text(object owner, string fieldName)
+        => ((TMP_Text)owner.GetType().GetField(fieldName, PrivateInstanceFlags).GetValue(owner)).text;
 
     private static void Require(bool condition, string label, List<string> results)
     {
