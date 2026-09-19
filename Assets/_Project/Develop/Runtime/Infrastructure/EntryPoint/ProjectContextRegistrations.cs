@@ -40,27 +40,9 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
             builder.Register(CreateWalletService, Lifetime.Singleton);
             builder.Register<StatisticsService>(Lifetime.Singleton);
             builder.Register(CreatePlayerDataProvider, Lifetime.Singleton);
-            builder.Register(CreatePlayerProgress, Lifetime.Singleton);
+            builder.Register(container => CreatePlayerProgress(container, projectToken), Lifetime.Singleton);
             builder.Register<SceneLoaderService>(Lifetime.Singleton);
-            builder.Register(CreateSceneSwitcher, Lifetime.Singleton);
-
-            PlayerProgressService CreatePlayerProgress(IObjectResolver container)
-            {
-                PlayerDataProvider provider = container.Resolve<PlayerDataProvider>();
-                WalletService wallet = container.Resolve<WalletService>();
-                StatisticsService statistics = container.Resolve<StatisticsService>();
-                EconomyRules rules = container.Resolve<ConfigsProviderService>().GetConfig<EconomyConfig>().Rules;
-
-                return new PlayerProgressService(provider, wallet, statistics, rules, projectToken);
-            }
-
-            SceneSwitcherService CreateSceneSwitcher(IObjectResolver container)
-            {
-                SceneLoaderService loader = container.Resolve<SceneLoaderService>();
-                ILoadingScreen screen = container.Resolve<ILoadingScreen>();
-
-                return new SceneSwitcherService(loader, screen, container, projectToken);
-            }
+            builder.Register(container => CreateSceneSwitcher(container, projectToken), Lifetime.Singleton);
         }
 
         private static StandardLoadingScreen LoadLoadingScreen(IObjectResolver container)
@@ -111,6 +93,26 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
                 currencies[currencyType] = new ReactiveVariable<int>();
 
             return new WalletService(currencies);
+        }
+
+        private static PlayerProgressService CreatePlayerProgress(IObjectResolver container,
+            CancellationToken projectToken)
+        {
+            PlayerDataProvider provider = container.Resolve<PlayerDataProvider>();
+            WalletService wallet = container.Resolve<WalletService>();
+            StatisticsService statistics = container.Resolve<StatisticsService>();
+            EconomyRules rules = container.Resolve<ConfigsProviderService>().GetConfig<EconomyConfig>().Rules;
+
+            return new PlayerProgressService(provider, wallet, statistics, rules, projectToken);
+        }
+
+        private static SceneSwitcherService CreateSceneSwitcher(IObjectResolver container,
+            CancellationToken projectToken)
+        {
+            SceneLoaderService loader = container.Resolve<SceneLoaderService>();
+            ILoadingScreen screen = container.Resolve<ILoadingScreen>();
+
+            return new SceneSwitcherService(loader, screen, container, projectToken);
         }
     }
 }
