@@ -1,30 +1,36 @@
-using VContainer;
 using Assets._Project.Develop.Runtime.Gameplay.Sequence;
-using Assets._Project.Develop.Runtime.Gameplay.Presentation;
+using Assets._Project.Develop.Runtime.Meta.Progress;
+using Assets._Project.Develop.Runtime.UI.Gameplay;
+using Assets._Project.Develop.Runtime.Utilities.Audio;
+using Assets._Project.Develop.Runtime.Utilities.Input;
 using Assets._Project.Develop.Runtime.Utilities.SceneManagement;
+using VContainer;
 
 namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
 {
-    public class GameplayContextRegistrations
+    public static class GameplayContextRegistrations
     {
         public static void Process(IContainerBuilder builder, GameplayInputArgs gameplayInputArgs,
-            GameplayController controller)
+            GameplayScreenView view, TerminalKeyboard keyboard)
         {
             builder.RegisterInstance(gameplayInputArgs);
+            builder.RegisterInstance(view);
+            builder.RegisterInstance(keyboard);
             builder.Register(CreateSequenceGenerator, Lifetime.Scoped);
             builder.Register<SequenceSession>(Lifetime.Scoped);
             builder.Register<GameplayLoop>(Lifetime.Scoped);
             builder.Register<GameplayProgressTracker>(Lifetime.Scoped);
             builder.Register<SceneNavigator>(Lifetime.Scoped);
-            // A scoped factory keeps controller.Dispose in the scene-scope teardown.
-            builder.Register(GetGameplayController, Lifetime.Scoped);
-
-            GameplayController GetGameplayController(IObjectResolver container) => controller;
+            builder.Register(CreateScreenPresenter, Lifetime.Scoped);
         }
 
         private static SequenceGenerator CreateSequenceGenerator(IObjectResolver container)
-        {
-            return new SequenceGenerator(new System.Random());
-        }
+            => new SequenceGenerator(new System.Random());
+
+        private static GameplayScreenPresenter CreateScreenPresenter(IObjectResolver container)
+            => new GameplayScreenPresenter(container.Resolve<GameplayScreenView>(),
+                container.Resolve<TerminalKeyboard>(), container.Resolve<GameplayLoop>(),
+                container.Resolve<SceneNavigator>(), container.Resolve<IAudioService>(),
+                container.Resolve<PlayerProgressService>());
     }
 }

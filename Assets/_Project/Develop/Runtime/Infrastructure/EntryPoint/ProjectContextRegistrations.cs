@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Assets._Project.Develop.Runtime.UI;
+using Assets._Project.Develop.Runtime.UI.Core;
 using VContainer;
 using VContainer.Unity;
 using UnityEngine;
@@ -27,6 +29,8 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
             CancellationToken projectToken)
         {
             builder.Register<ResourcesAssetLoader>(Lifetime.Singleton);
+            builder.Register<ViewsFactory>(Lifetime.Singleton);
+            builder.Register<ProjectPresentersFactory>(Lifetime.Singleton);
             builder.RegisterComponentInNewPrefab(LoadLoadingScreen, Lifetime.Singleton)
                 .UnderTransform(projectRoot).As<ILoadingScreen>();
             builder.RegisterComponentInNewPrefab(LoadAudioService, Lifetime.Singleton)

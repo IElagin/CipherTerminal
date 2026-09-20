@@ -14,6 +14,7 @@ public static class GameplayLoopChecks
 
     public static int Main()
     {
+        EnteredRetainsOnlyAcceptedNormalizedInput();
         SessionInitializationIsExplicitAndRunsOnce();
         UninitializedSessionCannotAcceptInputOrRun();
         InvalidInitializationCanBeCorrected();
@@ -28,6 +29,36 @@ public static class GameplayLoopChecks
 
         Console.WriteLine("PASS " + _passedCount + " GameplayLoop checks");
         return 0;
+    }
+
+    private static void EnteredRetainsOnlyAcceptedNormalizedInput()
+    {
+        var loop = CreateLoop("ABCD", SequenceMode.Letters);
+        loop.Submit('a');
+        AssertEqual("", loop.Session.Entered, "before Run has no entered text");
+        loop.Run();
+        loop.Submit('\n');
+        AssertEqual("", loop.Session.Entered, "ignored control has no entered text");
+        loop.Submit('a');
+        loop.Submit('b');
+        AssertEqual("AB", loop.Session.Entered, "correct prefix is normalized");
+        loop.Submit('x');
+        AssertEqual("ABX", loop.Session.Entered, "first incorrect input is retained");
+        AssertEqual(2, loop.Session.Progress, "incorrect symbol does not advance verified count");
+        loop.Submit('c');
+        loop.Submit(' ');
+        AssertEqual("ABX", loop.Session.Entered, "terminal input and navigation cannot alter entered text");
+        var space = CreateLoop("12", SequenceMode.Digits);
+        space.Run();
+        space.Submit(' ');
+        AssertEqual(" ", space.Session.Entered, "incorrect space is retained as data");
+        space.Submit(' ');
+        AssertEqual(" ", space.Session.Entered, "retry space is not appended");
+        var win = CreateLoop("a", SequenceMode.Letters);
+        win.Run();
+        win.Submit('a');
+        win.Submit(' ');
+        AssertEqual("A", win.Session.Entered, "winning entry survives navigation unchanged");
     }
 
     private static void RunDoesNotRepeatInitialUpdateOrResetProgress()

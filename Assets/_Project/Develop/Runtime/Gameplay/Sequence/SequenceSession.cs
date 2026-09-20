@@ -11,6 +11,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Sequence
 
         public string Target { get; private set; }
         public bool IsInitialized => Target != null;
+        public string Entered { get; private set; } = string.Empty;
         public int Progress { get; private set; }
         public SequenceState State { get; private set; }
 
@@ -30,7 +31,10 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Sequence
             if (State != SequenceState.Input || char.IsControl(character))
                 return false;
 
-            if (char.ToUpperInvariant(character) != Target[Progress])
+            char normalized = char.ToUpperInvariant(character);
+            Entered += normalized;
+
+            if (normalized != Target[Progress])
             {
                 State = SequenceState.Lost;
                 return true;

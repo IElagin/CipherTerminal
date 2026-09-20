@@ -1,41 +1,33 @@
 using System.Threading;
-using Cysharp.Threading.Tasks;
-using VContainer;
-using UnityEngine;
 using Assets._Project.Develop.Runtime.Infrastructure;
-using Assets._Project.Develop.Runtime.Meta.Progress;
-using Assets._Project.Develop.Runtime.Meta.Presentation;
-using Assets._Project.Develop.Runtime.Utilities.Audio;
-using Assets._Project.Develop.Runtime.Utilities.SceneManagement;
+using Assets._Project.Develop.Runtime.UI.Core;
+using Assets._Project.Develop.Runtime.UI.MainMenu;
+using Assets._Project.Develop.Runtime.Utilities.Input;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+using VContainer;
 
 namespace Assets._Project.Develop.Runtime.Meta.Infrastructure
 {
     public class MainMenuBootstrap : SceneBootstrap
     {
-        [SerializeField] private MainMenuController _controller;
+        [SerializeField] private MainMenuScreenView _view;
+        [SerializeField] private TerminalKeyboard _keyboard;
+        [SerializeField] private UIRoot _uiRoot;
+
+        private MainMenuScreenPresenter _presenter;
 
         public override UniTask Initialize(IObjectResolver container, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            SceneNavigator navigator = container.Resolve<SceneNavigator>();
-            IAudioService audio = container.Resolve<IAudioService>();
-            PlayerProgressService progress = container.Resolve<PlayerProgressService>();
-            MainMenuController controller = container.Resolve<MainMenuController>();
-
-            controller.Initialize(navigator, audio, progress);
-
+            _presenter = container.Resolve<MainMenuScreenPresenter>();
+            _presenter.Initialize();
             return UniTask.CompletedTask;
         }
 
         public override void ProcessRegistrations(IContainerBuilder builder, IInputSceneArgs sceneArgs = null)
-        {
-            MainMenuContextRegistrations.Process(builder, _controller);
-        }
+            => MainMenuContextRegistrations.Process(builder, _view, _keyboard, _uiRoot);
 
-        public override void Run()
-        {
-            _controller.Run();
-        }
+        public override void Run() => _presenter.Run();
     }
 }

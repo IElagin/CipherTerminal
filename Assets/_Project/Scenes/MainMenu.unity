@@ -161,31 +161,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: 1733236814}
   m_ActionId: 3c7022bf-7922-4f7c-a998-c437916075ad
---- !u!114 &525543464 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1590665671528881277, guid: d30bd488832fa4ecf87797cf34a62872, type: 3}
-  m_PrefabInstance: {fileID: 8608212301911592435}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1c10f52d822f4cecabca4867b333fe3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.UI.TerminalView
---- !u!114 &568690522
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: UI/Submit
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: 1733236814}
-  m_ActionId: 7607c7b6-cd76-4816-beef-bd0341cfe950
 --- !u!114 &714299628
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -283,20 +258,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1024092295
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: UI/Cancel
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: 1733236814}
-  m_ActionId: 15cef263-9014-4fd5-94d9-4e4a6234a6ef
 --- !u!114 &1038945127
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -321,7 +282,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1260767620}
   - component: {fileID: 1260767619}
-  - component: {fileID: 1260767618}
   - component: {fileID: 1260767617}
   m_Layer: 0
   m_Name: Bootstrap
@@ -342,21 +302,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c27500cc893a4c2d8ef891812771cca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Utilities.Input.TerminalKeyboard
---- !u!114 &1260767618
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1260767616}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee0e728d0d7f345229e8c40a5cd51c43, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Meta.Presentation.MainMenuController
-  _view: {fileID: 525543464}
-  _keyboard: {fileID: 1260767617}
-  _walletView: {fileID: 8608212301911592436}
 --- !u!114 &1260767619
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -369,7 +314,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86232f3ed2fcf491f89e83d8ec9efb86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Meta.Infrastructure.MainMenuBootstrap
-  _controller: {fileID: 1260767618}
+  _view: {fileID: 8608212301911592437}
+  _keyboard: {fileID: 1260767617}
+  _uiRoot: {fileID: 8608212301911592436}
 --- !u!4 &1260767620
 Transform:
   m_ObjectHideFlags: 0
@@ -435,9 +382,9 @@ MonoBehaviour:
   m_XRTrackingOrigin: {fileID: 0}
   m_ActionsAsset: {fileID: 1733236814}
   m_PointAction: {fileID: 166664100}
-  m_MoveAction: {fileID: 1960000805}
-  m_SubmitAction: {fileID: 568690522}
-  m_CancelAction: {fileID: 1024092295}
+  m_MoveAction: {fileID: 0}
+  m_SubmitAction: {fileID: 0}
+  m_CancelAction: {fileID: 0}
   m_LeftClickAction: {fileID: 225318398}
   m_MiddleClickAction: {fileID: 202063118}
   m_RightClickAction: {fileID: 1500033911}
@@ -461,7 +408,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventSystem
   m_FirstSelected: {fileID: 0}
-  m_sendNavigationEvents: 1
+  m_sendNavigationEvents: 0
   m_DragThreshold: 10
 --- !u!4 &1637254245
 Transform:
@@ -1125,20 +1072,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: 1733236814}
   m_ActionId: 24908448-c609-4bc3-a128-ea258674378a
---- !u!114 &1960000805
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: UI/Navigate
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: 1733236814}
-  m_ActionId: c95b2375-e6d9-4b88-9c4c-c5e76515df4b
 --- !u!1001 &8608212301911592435
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1242,15 +1175,26 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: d30bd488832fa4ecf87797cf34a62872, type: 3}
 --- !u!114 &8608212301911592436 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 94450517721048805, guid: d30bd488832fa4ecf87797cf34a62872, type: 3}
+  m_CorrespondingSourceObject: {fileID: 9112829757466858314, guid: d30bd488832fa4ecf87797cf34a62872, type: 3}
   m_PrefabInstance: {fileID: 8608212301911592435}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a89dfe4f1ad74633a53c7cc4672b3b1, type: 3}
+  m_Script: {fileID: 11500000, guid: 362f6926a5ef4471d98933a0a2be07f0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.UI.WalletPanelView
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.UI.Core.UIRoot
+--- !u!114 &8608212301911592437 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6632349536852914529, guid: d30bd488832fa4ecf87797cf34a62872, type: 3}
+  m_PrefabInstance: {fileID: 8608212301911592435}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2aa05f37ddb904a6f8060aedae3ad755, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.UI.MainMenu.MainMenuScreenView
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

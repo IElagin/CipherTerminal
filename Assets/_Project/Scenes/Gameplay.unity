@@ -119,17 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &324406539 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4224489344678591629, guid: 733e66d08988242ef868e1575607af6e, type: 3}
-  m_PrefabInstance: {fileID: 8574349277750185803}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1c10f52d822f4cecabca4867b333fe3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.UI.TerminalView
 --- !u!1 &963644271
 GameObject:
   m_ObjectHideFlags: 0
@@ -223,7 +212,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1260767620}
   - component: {fileID: 1260767619}
-  - component: {fileID: 1260767618}
   - component: {fileID: 1260767617}
   m_Layer: 0
   m_Name: Bootstrap
@@ -244,20 +232,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c27500cc893a4c2d8ef891812771cca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Utilities.Input.TerminalKeyboard
---- !u!114 &1260767618
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1260767616}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc2147718f1d84c7f832efd70b8dba41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Presentation.GameplayController
-  _view: {fileID: 324406539}
-  _keyboard: {fileID: 1260767617}
 --- !u!114 &1260767619
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -270,7 +244,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: faff914f5932f4d4bab6b9e9f2513c89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Infrastructure.GameplayBootstrap
-  _controller: {fileID: 1260767618}
+  _view: {fileID: 8574349277750185804}
+  _keyboard: {fileID: 1260767617}
 --- !u!4 &1260767620
 Transform:
   m_ObjectHideFlags: 0
@@ -383,6 +358,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 733e66d08988242ef868e1575607af6e, type: 3}
+--- !u!114 &8574349277750185804 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3791009947006061649, guid: 733e66d08988242ef868e1575607af6e, type: 3}
+  m_PrefabInstance: {fileID: 8574349277750185803}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2be9a1eb13d904bc7a77d2fdf2f22201, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.UI.Gameplay.GameplayScreenView
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -54,12 +54,6 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
                 return;
             }
 
-            ProgressSnapshot snapshot = _progress.Snapshot;
-            string sign = result.GoldDelta > 0 ? "+" : "";
-            string outcome = state == SequenceState.Won ? "победа" : "поражение";
-            Debug.Log("Экономика: " + outcome + ", " + sign + result.GoldDelta +
-                      " золота; баланс " + snapshot.Gold);
-
             if (result.Status == ProgressOperationStatus.SavedInMemoryOnly)
                 Debug.LogError(_progress.Error);
         }

@@ -11,7 +11,10 @@ using TMPro;
 using Assets._Project.Develop.Runtime.Gameplay;
 using Assets._Project.Develop.Runtime.Gameplay.Presentation;
 using Assets._Project.Develop.Runtime.Gameplay.Sequence;
-using Assets._Project.Develop.Runtime.Meta.Presentation;
+using Assets._Project.Develop.Runtime.UI.MainMenu;
+using Assets._Project.Develop.Runtime.UI.Gameplay;
+using Assets._Project.Develop.Runtime.UI.ResetStatistics;
+using UnityEngine.UI;
 using Assets._Project.Develop.Runtime.Meta.Progress;
 using Assets._Project.Develop.Runtime.UI;
 using Assets._Project.Develop.Runtime.Utilities.Audio;
@@ -31,132 +34,144 @@ public static class AudioFeedbackChecks
     {
         string scratchPath = Path.Combine(Path.GetTempPath(), "cipher-audio-check-" + Guid.NewGuid().ToString("N"));
         GameObject menuRoot = null;
-        PlayerProgressService progressService = null;
+        GameObject popupRoot = null;
+        PlayerProgressService progress = null;
+        ProgressPanelPresenter panel = null;
+        ResetStatisticsPopupPresenter popup = null;
         var results = new List<string>();
-
         try
         {
-            const int initialGold = 25;
-            const int winReward = 10;
-            const int lossPenalty = 5;
-            const int resetCost = 25;
-            var rules = new EconomyRules(initialGold, winReward, lossPenalty, resetCost);
+            var rules = new EconomyRules(100, 10, 5, 25);
             var repository = new DelayedWriteRepository(new LocalFileDataRepository(scratchPath, "json"));
-            var saveLoad = new SaveLoadService(new JsonSerializer(), new MapDataKeysStorage(),
-                repository);
+            var saveLoad = new SaveLoadService(new JsonSerializer(), new MapDataKeysStorage(), repository);
             var provider = new PlayerDataProvider(saveLoad, rules);
             var wallet = new WalletService(new Dictionary<CurrencyTypes, ReactiveVariable<int>>
             {
                 [CurrencyTypes.Gold] = new ReactiveVariable<int>()
             });
             var statistics = new StatisticsService();
-            progressService = new PlayerProgressService(provider, wallet, statistics,
-                rules, default);
-            await progressService.Initialize();
+            progress = new PlayerProgressService(provider, wallet, statistics, rules, default);
+            await progress.Initialize();
             statistics.RecordWin();
             statistics.RecordLoss();
-
             menuRoot = PrefabUtility.LoadPrefabContents("Assets/_Project/Prefabs/UI/MainMenuScreen.prefab");
-            var controller = menuRoot.AddComponent<MainMenuController>();
-            SetField(controller, "_view", menuRoot.GetComponentInChildren<TerminalView>(true));
-            var walletView = menuRoot.GetComponentInChildren<WalletPanelView>(true);
-            SetField(controller, "_walletView", walletView);
-            SetField(controller, "_keyboard", menuRoot.AddComponent<TerminalKeyboard>());
+            popupRoot = PrefabUtility.LoadPrefabContents("Assets/_Project/Resources/UI/ResetStatisticsPopup.prefab");
+            ProgressPanelView panelView = menuRoot.GetComponentInChildren<ProgressPanelView>(true);
+            ResetStatisticsPopupView popupView = popupRoot.GetComponent<ResetStatisticsPopupView>();
+            panel = new ProgressPanelPresenter(panelView, progress);
+            panel.Initialize();
+            panel.SetInteractable(false);
             var audio = new RecordingAudio();
-            controller.Initialize(null, audio, progressService);
-            controller.Run();
-            const string recordedCount = "1";
-            Require(Text(walletView, "_gold") == initialGold.ToString() &&
-                    Text(walletView, "_wins") == recordedCount && Text(walletView, "_losses") == recordedCount,
-                "menu renders initial wallet and service-owned statistics", results);
-            MethodInfo resetStatisticsMethod = typeof(MainMenuController).GetMethod("ResetStatisticsAsync", PrivateInstanceFlags);
-
-            UniTaskCompletionSource resetWrite = repository.DelayNextWrite();
-            Task resetOperation = ((UniTask)resetStatisticsMethod.Invoke(controller, null)).AsTask();
-            const string resetValue = "0";
-            bool resetRenderedBeforeSave = resetOperation.IsCompleted == false &&
-                                          Text(walletView, "_gold") == resetValue &&
-                                          Text(walletView, "_wins") == resetValue &&
-                                          Text(walletView, "_losses") == resetValue &&
-                                          walletView.ResetButton.interactable;
-            resetWrite.TrySetResult();
-            await resetOperation;
-            Require(resetRenderedBeforeSave,
-                "paid reset updates UI and interaction before the write completes", results);
-            Require(progressService.Snapshot.Gold == 0, "successful reset exercises the actual paid-reset path", results);
-            Require(Text(walletView, "_gold") == resetValue && Text(walletView, "_wins") == resetValue &&
-                    Text(walletView, "_losses") == resetValue && walletView.ResetButton.interactable,
-                "paid reset updates the existing prefab UI and restores interaction", results);
-            RequireSingleCue(audio, AudioCue.Key,
-                "successful statistics reset uses button feedback without victory voice", results);
+            int closeRequests = 0;
+            popup = new ResetStatisticsPopupPresenter(popupView, progress, audio);
+            popup.CloseRequest += p => closeRequests++;
+            popup.Initialize();
+            popup.RequestCancel();
+            Require(closeRequests == 1 && progress.Snapshot.Equals(new ProgressSnapshot(100, 1, 1)),
+                "cancel requests close without charging or resetting statistics", results);
+            popup.Dispose();
+            popup = new ResetStatisticsPopupPresenter(popupView, progress, audio);
+            closeRequests = 0;
+            popup.CloseRequest += p => closeRequests++;
+            popup.Initialize();
+            Require(Text(panelView, "_gold") == "100" && Text(panelView, "_wins") == "1" && Text(panelView, "_losses") == "1",
+                "permanent panel renders a coherent initial snapshot", results);
+            UniTaskCompletionSource write = repository.DelayNextWrite();
+            Task pending = Confirm(popup).AsTask();
+            Require(pending.IsCompleted == false && progress.Snapshot.Equals(new ProgressSnapshot(75, 0, 0)) &&
+                Text(panelView, "_gold") == "75" && Text(panelView, "_wins") == "0" && Text(panelView, "_losses") == "0",
+                "confirmed reset updates the panel before persistence finishes", results);
+            Require(Button(popupView, "_confirm").interactable == false && Button(popupView, "_cancel").interactable == false &&
+                Button(panelView, "_resetButton").interactable == false,
+                "progress notification cannot unlock popup or covered menu during saving", results);
+            await Confirm(popup);
+            popup.RequestCancel();
+            Require(closeRequests == 0 && progress.Snapshot.Gold == 75,
+                "repeat confirmation and Escape are blocked during saving", results);
+            write.TrySetResult();
+            await pending;
+            Require(closeRequests == 1 && progress.Snapshot.Gold == 75,
+                "successful paid reset closes exactly once", results);
+            RequireSingleCue(audio, AudioCue.Key, "successful reset plays Key without victory voice", results);
+            popup.Dispose();
 
             audio.Cues.Clear();
-            await (UniTask)resetStatisticsMethod.Invoke(controller, null);
-            RequireSingleCue(audio, AudioCue.Error,
-                "insufficient funds use error feedback without victory voice", results);
-
+            popup = new ResetStatisticsPopupPresenter(popupView, progress, audio);
+            popup.Initialize();
             string savePath = Path.Combine(scratchPath, "player.json");
-            string beforeFailedWrite = File.ReadAllText(savePath);
+            string beforeFailure = File.ReadAllText(savePath);
             UniTaskCompletionSource failedWrite = repository.DelayNextWrite();
-            Task<ProgressOperationResult> wonOperation = progressService.RecordResultAsync(SequenceState.Won).AsTask();
-            const string oneWin = "1";
-            bool resultRenderedBeforeSave = wonOperation.IsCompleted == false &&
-                                           Text(walletView, "_gold") == winReward.ToString() &&
-                                           Text(walletView, "_wins") == oneWin;
+            pending = Confirm(popup).AsTask();
             failedWrite.TrySetException(new IOException("Expected isolated delayed write failure"));
-            ProgressOperationResult failedResult = await wonOperation;
-            Require(resultRenderedBeforeSave,
-                "round result updates UI before the write completes", results);
-            Require(failedResult.Status == ProgressOperationStatus.SavedInMemoryOnly &&
-                    progressService.Snapshot.Equals(new ProgressSnapshot(winReward, 1, 0)) &&
-                    Text(walletView, "_status") == PlayerProgressService.SaveErrorMessage &&
-                    File.ReadAllText(savePath) == beforeFailedWrite,
-                "late write failure preserves progress and prior file while notifying UI", results);
+            await pending;
+            Require(progress.Snapshot.Gold == 50 && Text(panelView, "_gold") == "50" &&
+                Text(panelView, "_status") == PlayerProgressService.SaveErrorMessage && File.ReadAllText(savePath) == beforeFailure,
+                "failed write retains one reset in memory, prior file and visible save error", results);
+            Require(Button(popupView, "_confirm").interactable == false && Button(popupView, "_cancel").interactable &&
+                Text(popupView, "_status").Contains("Статистика сброшена"),
+                "memory-only success permits closing but never another charge", results);
+            await Confirm(popup);
+            Require(progress.Snapshot.Gold == 50, "repeated handler after failed save does not charge twice", results);
+            RequireSingleCue(audio, AudioCue.Error, "save failure uses Error feedback", results);
+            popup.Dispose();
+            await progress.RecordResultAsync(SequenceState.Won);
+            var saved = new JsonSerializer().Deserialize<PlayerData>(File.ReadAllText(savePath));
+            Require(saved.Gold == 60 && saved.Wins == 1 && saved.Losses == 0 && progress.Error == null &&
+                Text(panelView, "_status") == "> Система готова",
+                "next ordinary save persists memory state and clears panel error", results);
 
-            UniTaskCompletionSource retryWrite = repository.DelayNextWrite();
-            Task<ProgressOperationResult> lostOperation = progressService.RecordResultAsync(SequenceState.Lost).AsTask();
-            int expectedGold = winReward - lossPenalty;
-            bool retryRenderedBeforeSave = lostOperation.IsCompleted == false &&
-                                          Text(walletView, "_gold") == expectedGold.ToString() &&
-                                          Text(walletView, "_status") == PlayerProgressService.SaveErrorMessage;
-            retryWrite.TrySetResult();
-            ProgressOperationResult retryResult = await lostOperation;
-            Require(retryRenderedBeforeSave,
-                "next result updates values while retaining the unresolved save error", results);
-            var savedProgress = new JsonSerializer().Deserialize<PlayerData>(File.ReadAllText(savePath));
-            Require(retryResult.Status == ProgressOperationStatus.Completed && progressService.Error == null &&
-                    Text(walletView, "_status") == "> Система готова" &&
-                    savedProgress.Gold == expectedGold && savedProgress.Wins == 1 && savedProgress.Losses == 1,
-                "successful retry persists accumulated progress and clears the UI error", results);
-
-            var gameplay = menuRoot.AddComponent<GameplayController>();
-            gameplay.Initialize(null, null, audio);
-            MethodInfo inputEvaluatedMethod = typeof(GameplayController).GetMethod("OnInputEvaluated", PrivateInstanceFlags);
+            wallet.Spend(CurrencyTypes.Gold, 50);
             audio.Cues.Clear();
-            inputEvaluatedMethod.Invoke(gameplay, new object[] { InputEvaluation.Correct });
-            inputEvaluatedMethod.Invoke(gameplay, new object[] { InputEvaluation.Incorrect });
-            const int ordinaryFeedbackCount = 2;
-            const int errorCueIndex = 1;
-            Require(audio.Cues.Count == ordinaryFeedbackCount && audio.Cues[0] == AudioCue.Key && audio.Cues[errorCueIndex] == AudioCue.Error,
-                "ordinary input and loss do not request victory voice", results);
+            popup = new ResetStatisticsPopupPresenter(popupView, progress, audio);
+            popup.Initialize();
+            Require(Button(popupView, "_confirm").interactable == false && Text(popupView, "_status").Contains("Не хватает 15"),
+                "insufficient balance disables confirmation and explains missing gold", results);
+            await Confirm(popup);
+            Require(progress.Snapshot.Equals(new ProgressSnapshot(10, 1, 0)), "insufficient reset leaves all progress intact", results);
+            RequireSingleCue(audio, AudioCue.Error, "insufficient reset cannot play victory feedback", results);
+            popup.Dispose();
 
+            wallet.Add(CurrencyTypes.Gold, 100);
+            popup = new ResetStatisticsPopupPresenter(popupView, progress, audio);
+            popup.Initialize();
+            UniTaskCompletionSource teardownWrite = repository.DelayNextWrite();
+            pending = Confirm(popup).AsTask();
+            popup.Dispose();
+            PrefabUtility.UnloadPrefabContents(popupRoot);
+            popupRoot = null;
+            popup = null;
+            teardownWrite.TrySetResult();
+            await pending;
+            Require(progress.Snapshot.Gold == 85, "project-owned reset completes after popup disposal without touching released view", results);
+
+            var gameplay = new GameplayScreenPresenter(null, null, null, null, audio, null);
+            MethodInfo evaluated = typeof(GameplayScreenPresenter).GetMethod("OnInputEvaluated", PrivateInstanceFlags);
             audio.Cues.Clear();
-            inputEvaluatedMethod.Invoke(gameplay, new object[] { InputEvaluation.Completed });
-            RequireSingleCue(audio, AudioCue.Success,
-                "completed sequence still requests victory voice", results);
+            evaluated.Invoke(gameplay, new object[] { InputEvaluation.Correct });
+            evaluated.Invoke(gameplay, new object[] { InputEvaluation.Incorrect });
+            Require(audio.Cues.Count == 2 && audio.Cues[0] == AudioCue.Key && audio.Cues[1] == AudioCue.Error,
+                "ordinary input and loss keep existing sound cues", results);
+            audio.Cues.Clear();
+            evaluated.Invoke(gameplay, new object[] { InputEvaluation.Completed });
+            RequireSingleCue(audio, AudioCue.Success, "only winning input requests victory voice", results);
             return string.Join("\n", results);
         }
         finally
         {
-            if (menuRoot != null)
-                PrefabUtility.UnloadPrefabContents(menuRoot);
-
-            progressService?.Dispose();
-
-            if (Directory.Exists(scratchPath))
-                Directory.Delete(scratchPath, true);
+            popup?.Dispose();
+            panel?.Dispose();
+            if (popupRoot != null) PrefabUtility.UnloadPrefabContents(popupRoot);
+            if (menuRoot != null) PrefabUtility.UnloadPrefabContents(menuRoot);
+            progress?.Dispose();
+            if (Directory.Exists(scratchPath)) Directory.Delete(scratchPath, true);
         }
     }
+
+    private static UniTask Confirm(ResetStatisticsPopupPresenter popup)
+        => (UniTask)typeof(ResetStatisticsPopupPresenter).GetMethod("ConfirmAsync", PrivateInstanceFlags).Invoke(popup, null);
+
+    private static Button Button(object view, string field)
+        => (Button)view.GetType().GetField(field, PrivateInstanceFlags).GetValue(view);
 
     private static void RequireSingleCue(RecordingAudio audio, AudioCue expected, string label, List<string> results)
     {
