@@ -9,14 +9,12 @@ using UnityEditor;
 using UnityEngine;
 using TMPro;
 using Assets._Project.Develop.Runtime.Gameplay;
-using Assets._Project.Develop.Runtime.Gameplay.Presentation;
 using Assets._Project.Develop.Runtime.Gameplay.Sequence;
 using Assets._Project.Develop.Runtime.UI.MainMenu;
 using Assets._Project.Develop.Runtime.UI.Gameplay;
 using Assets._Project.Develop.Runtime.UI.ResetStatistics;
 using UnityEngine.UI;
 using Assets._Project.Develop.Runtime.Meta.Progress;
-using Assets._Project.Develop.Runtime.UI;
 using Assets._Project.Develop.Runtime.Utilities.Audio;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.DataProviders;
@@ -24,7 +22,6 @@ using Assets._Project.Develop.Runtime.Utilities.DataManagment.DataRepository;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.KeysStorage;
 using Assets._Project.Develop.Runtime.Utilities.DataManagment.Serializers;
 using Assets._Project.Develop.Runtime.Utilities.Reactive;
-using Assets._Project.Develop.Runtime.Utilities.Input;
 
 public static class AudioFeedbackChecks
 {
@@ -54,8 +51,8 @@ public static class AudioFeedbackChecks
             await progress.Initialize();
             statistics.RecordWin();
             statistics.RecordLoss();
-            menuRoot = PrefabUtility.LoadPrefabContents("Assets/_Project/Prefabs/UI/MainMenuScreen.prefab");
-            popupRoot = PrefabUtility.LoadPrefabContents("Assets/_Project/Resources/UI/ResetStatisticsPopup.prefab");
+            menuRoot = PrefabUtility.LoadPrefabContents("Assets/_Project/Resources/UI/MainMenu/MainMenuScreen.prefab");
+            popupRoot = PrefabUtility.LoadPrefabContents("Assets/_Project/Resources/UI/ResetStatistics/ResetStatisticsPopup.prefab");
             ProgressPanelView panelView = menuRoot.GetComponentInChildren<ProgressPanelView>(true);
             ResetStatisticsPopupView popupView = popupRoot.GetComponent<ResetStatisticsPopupView>();
             panel = new ProgressPanelPresenter(panelView, progress);
@@ -178,9 +175,6 @@ public static class AudioFeedbackChecks
         const int singleCueCount = 1;
         Require(audio.Cues.Count == singleCueCount && audio.Cues[0] == expected, label, results);
     }
-
-    private static void SetField(object owner, string fieldName, object value)
-        => owner.GetType().GetField(fieldName, PrivateInstanceFlags).SetValue(owner, value);
 
     private static string Text(object owner, string fieldName)
         => ((TMP_Text)owner.GetType().GetField(fieldName, PrivateInstanceFlags).GetValue(owner)).text;

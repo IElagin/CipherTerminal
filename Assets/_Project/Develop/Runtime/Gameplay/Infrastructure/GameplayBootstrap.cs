@@ -13,7 +13,6 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
 {
     public class GameplayBootstrap : SceneBootstrap
     {
-        [SerializeField] private GameplayScreenView _view;
         [SerializeField] private TerminalKeyboard _keyboard;
 
         private GameplayScreenPresenter _presenter;
@@ -32,7 +31,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Infrastructure
         }
 
         public override void ProcessRegistrations(IContainerBuilder builder, IInputSceneArgs sceneArgs = null)
-            => GameplayContextRegistrations.Process(builder, (GameplayInputArgs)sceneArgs, _view, _keyboard);
+            => GameplayContextRegistrations.Process(builder, (GameplayInputArgs)sceneArgs, _keyboard);
 
         public override void Run()
         {

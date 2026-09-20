@@ -10,7 +10,9 @@ namespace Assets._Project.Develop.Runtime.UI.Core
         private readonly ResourcesAssetLoader _resources;
         private readonly Dictionary<string, string> _paths = new()
         {
-            { ViewIDs.ResetStatisticsPopup, "UI/ResetStatisticsPopup" }
+            { ViewIDs.MainMenuScreen, "UI/MainMenu/MainMenuScreen" },
+            { ViewIDs.GameplayScreen, "UI/Gameplay/GameplayScreen" },
+            { ViewIDs.ResetStatisticsPopup, "UI/ResetStatistics/ResetStatisticsPopup" }
         };
 
         public ViewsFactory(ResourcesAssetLoader resources)
@@ -22,6 +24,7 @@ namespace Assets._Project.Develop.Runtime.UI.Core
         {
             if (_paths.TryGetValue(viewId, out string path) == false)
                 throw new ArgumentException("Unknown view: " + viewId, nameof(viewId));
+
             GameObject prefab = _resources.Load<GameObject>(path);
 
             if (prefab == null || prefab.GetComponent<TView>() == null)
@@ -30,6 +33,11 @@ namespace Assets._Project.Develop.Runtime.UI.Core
             return UnityEngine.Object.Instantiate(prefab, parent).GetComponent<TView>();
         }
 
-        public void Release(PopupViewBase view) => UnityEngine.Object.Destroy(view.gameObject);
+        public void Release(PopupViewBase view)
+        {
+            // On Play Mode exit Unity can destroy the scene before the project scope.
+            if (view != null)
+                UnityEngine.Object.Destroy(view.gameObject);
+        }
     }
 }
