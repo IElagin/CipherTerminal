@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3c34d9cac20e4c168fd74197a82cd9e, type: 3}
   m_Name: SequenceConfig
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Configs.SequenceConfig
-  _length: 6
+  _length: 8
   _modes:
   - _mode: 0
     _symbols: 0123456789
