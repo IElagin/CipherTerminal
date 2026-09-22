@@ -32,6 +32,7 @@ public static class AudioFeedbackChecks
         string scratchPath = Path.Combine(Path.GetTempPath(), "cipher-audio-check-" + Guid.NewGuid().ToString("N"));
         GameObject menuRoot = null;
         GameObject popupRoot = null;
+        GameObject gameplayRoot = null;
         PlayerProgressService progress = null;
         ProgressPanelPresenter panel = null;
         ResetStatisticsPopupPresenter popup = null;
@@ -141,7 +142,8 @@ public static class AudioFeedbackChecks
             await pending;
             Require(progress.Snapshot.Gold == 85, "project-owned reset completes after popup disposal without touching released view", results);
 
-            var gameplay = new GameplayScreenPresenter(null, null, null, null, audio, null);
+            gameplayRoot = PrefabUtility.LoadPrefabContents("Assets/_Project/Resources/UI/Gameplay/GameplayScreen.prefab");
+            var gameplay = new GameplayScreenPresenter(gameplayRoot.GetComponent<GameplayScreenView>(), null, null, null, audio, null);
             MethodInfo evaluated = typeof(GameplayScreenPresenter).GetMethod("OnInputEvaluated", PrivateInstanceFlags);
             audio.Cues.Clear();
             evaluated.Invoke(gameplay, new object[] { InputEvaluation.Correct });
@@ -159,6 +161,7 @@ public static class AudioFeedbackChecks
             panel?.Dispose();
             if (popupRoot != null) PrefabUtility.UnloadPrefabContents(popupRoot);
             if (menuRoot != null) PrefabUtility.UnloadPrefabContents(menuRoot);
+            if (gameplayRoot != null) PrefabUtility.UnloadPrefabContents(gameplayRoot);
             progress?.Dispose();
             if (Directory.Exists(scratchPath)) Directory.Delete(scratchPath, true);
         }

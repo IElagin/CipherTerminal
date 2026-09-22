@@ -17,7 +17,6 @@ namespace Assets._Project.Develop.Runtime.UI.Gameplay
         private readonly SceneNavigator _navigator;
         private readonly IAudioService _audio;
         private readonly PlayerProgressService _progress;
-        private bool _initialUpdateReceived;
 
         public GameplayScreenPresenter(GameplayScreenView view, TerminalKeyboard keyboard, GameplayLoop loop,
             SceneNavigator navigator, IAudioService audio, PlayerProgressService progress)
@@ -68,22 +67,31 @@ namespace Assets._Project.Develop.Runtime.UI.Gameplay
             _view.Render(protocol, session.Target, session.Entered, session.Progress,
                 session.State == SequenceState.Input, session.State == SequenceState.Won);
 
-            if (_initialUpdateReceived)
-                _view.Pulse(session.State == SequenceState.Lost);
-
-            _initialUpdateReceived = true;
+            _view.SetInputActive(session.State == SequenceState.Input);
         }
 
         private void OnInputEvaluated(InputEvaluation evaluation)
         {
-            AudioCue cue = evaluation switch
+            switch (evaluation)
             {
-                InputEvaluation.Correct => AudioCue.Key,
-                InputEvaluation.Incorrect => AudioCue.Error,
-                InputEvaluation.Completed => AudioCue.Success,
-                _ => throw new System.ArgumentOutOfRangeException(nameof(evaluation))
-            };
-            _audio.Play(cue);
+                case InputEvaluation.Correct:
+                    _view.PlayInputFeedback();
+                    _audio.Play(AudioCue.Key);
+                    break;
+
+                case InputEvaluation.Incorrect:
+                    _view.PlayErrorFeedback();
+                    _audio.Play(AudioCue.Error);
+                    break;
+
+                case InputEvaluation.Completed:
+                    _view.PlayVictoryFeedback();
+                    _audio.Play(AudioCue.Success);
+                    break;
+
+                default:
+                    throw new System.ArgumentOutOfRangeException(nameof(evaluation));
+            }
         }
 
         private void OnNavigationRequested(GameplayNavigationRequest request)
