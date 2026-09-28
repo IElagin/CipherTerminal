@@ -45,6 +45,7 @@ namespace Assets._Project.Develop.Runtime.UI.MainMenu
             _panel.ResetRequested += OpenReset;
             _view.DigitsClicked += OnDigits;
             _view.LettersClicked += OnLetters;
+            _view.MovementLabClicked += OpenMovementLab;
             RefreshInteraction();
         }
 
@@ -65,6 +66,7 @@ namespace Assets._Project.Develop.Runtime.UI.MainMenu
             _keyboard.EscapePressed -= OnEscape;
             _view.DigitsClicked -= OnDigits;
             _view.LettersClicked -= OnLetters;
+            _view.MovementLabClicked -= OpenMovementLab;
             _panel.ResetRequested -= OpenReset;
             _panel.Dispose();
         }
@@ -78,6 +80,8 @@ namespace Assets._Project.Develop.Runtime.UI.MainMenu
                 OnDigits();
             else if (character == '2')
                 OnLetters();
+            else if (character == '3')
+                OpenMovementLab();
             else if (character == '4')
                 OpenReset();
         }
@@ -98,6 +102,18 @@ namespace Assets._Project.Develop.Runtime.UI.MainMenu
             _keyboard.Deactivate();
             _audio.Play(AudioCue.Key);
             _navigator.Go(Scenes.Gameplay, new GameplayInputArgs(InitialLevelNumber, mode));
+        }
+
+        private void OpenMovementLab()
+        {
+            if (_running == false || _activePopup != null || _progress.IsReady == false || _navigator.IsLeaving)
+                return;
+
+            _running = false;
+            RefreshInteraction();
+            _keyboard.Deactivate();
+            _audio.Play(AudioCue.Key);
+            _navigator.Go(Scenes.MovementLab);
         }
 
         private void OpenReset()

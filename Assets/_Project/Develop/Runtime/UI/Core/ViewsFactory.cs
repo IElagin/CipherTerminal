@@ -10,6 +10,7 @@ namespace Assets._Project.Develop.Runtime.UI.Core
         private readonly ResourcesAssetLoader _resources;
         private readonly Dictionary<string, string> _paths = new()
         {
+            { ViewIDs.MovementLabScreen, "UI/MovementLab/MovementLabScreen" },
             { ViewIDs.MainMenuScreen, "UI/MainMenu/MainMenuScreen" },
             { ViewIDs.GameplayScreen, "UI/Gameplay/GameplayScreen" },
             { ViewIDs.ResetStatisticsPopup, "UI/ResetStatistics/ResetStatisticsPopup" }

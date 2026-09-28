@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a100b5681f1a4444ac8ac2158d8daee, type: 3}
+  m_Name: EnemiesListConfig
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Configs.Gameplay.Enemies.EnemiesListConfig
+  _enemies:
+  - {fileID: 11400000, guid: 46c281e27a3dd41d49d3a45a5774c72c, type: 2}
+  - {fileID: 11400000, guid: 0f6ee2680ea6c4eec9898bd6373960bc, type: 2}

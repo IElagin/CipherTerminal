@@ -17,5 +17,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/Gameplay.unity
     guid: 3cc9aec312ec74fa79bb1f2c00cb6384
+  - enabled: 1
+    path: Assets/_Project/Scenes/MovementLab.unity
+    guid: 9c057f2cdc59e4059940a7e91e4d06c8
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

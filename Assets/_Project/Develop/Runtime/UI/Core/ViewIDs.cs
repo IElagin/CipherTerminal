@@ -5,5 +5,6 @@ namespace Assets._Project.Develop.Runtime.UI.Core
         public const string MainMenuScreen = nameof(MainMenuScreen);
         public const string GameplayScreen = nameof(GameplayScreen);
         public const string ResetStatisticsPopup = "ResetStatisticsPopup";
+        public const string MovementLabScreen = "MovementLabScreen";
     }
 }

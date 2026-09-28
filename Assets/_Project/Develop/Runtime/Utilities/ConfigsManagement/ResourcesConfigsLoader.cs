@@ -16,6 +16,8 @@ namespace Assets._Project.Develop.Runtime.Utilities.ConfigsManagement
         public ResourcesConfigsLoader(ResourcesAssetLoader resources)
         {
             _resources = resources;
+            _configsResourcesPaths.Add(typeof(Assets._Project.Develop.Runtime.Configs.Gameplay.Hero.HeroConfig), "Configs/Gameplay/Hero/HeroConfig");
+            _configsResourcesPaths.Add(typeof(Assets._Project.Develop.Runtime.Configs.Gameplay.Enemies.EnemiesListConfig), "Configs/Gameplay/Enemies/EnemiesListConfig");
             _configsResourcesPaths.Add(typeof(Assets._Project.Develop.Runtime.Gameplay.Configs.SequenceConfig), "Configs/SequenceConfig");
             _configsResourcesPaths.Add(typeof(Assets._Project.Develop.Runtime.Meta.Configs.EconomyConfig), "Configs/EconomyConfig");
             _configsResourcesPaths.Add(typeof(Assets._Project.Develop.Runtime.Utilities.Audio.AudioCatalog), "Configs/AudioCatalog");
