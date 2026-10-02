@@ -18,7 +18,7 @@ MonoBehaviour:
   _keyClip3: {fileID: 8300000, guid: 87891ae6cd223452fb8e1659c3f1472c, type: 3}
   _errorClip: {fileID: 8300000, guid: 30ebd33a781eb4825835afdf81705b10, type: 3}
   _successClip: {fileID: 8300000, guid: c1a40ff11d2a94806a72a2c21de0f738, type: 3}
-  _ambientVolume: 0.22
+  _ambientVolume: 0.1
   _keyVolume: 0.75
   _errorVolume: 0.71
   _successVolume: 0.71
