@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace Assets._Project.Develop.Editor
 {
     public static class UnityLayersGenerator
     {
-        private const int LayerCount = 32;
         private const string OutputPath = "Assets/_Project/Develop/Runtime/Utilities/Layers/UnityLayers.cs";
         private const string OutputNamespace = "Assets._Project.Develop.Runtime.Utilities.Layers";
 
@@ -20,13 +21,9 @@ namespace Assets._Project.Develop.Editor
             var masks = new StringBuilder();
             var usedNames = new HashSet<string>();
 
-            for (int layer = 0; layer < LayerCount; layer++)
+            foreach (string layerName in InternalEditorUtility.layers.OrderBy(LayerMask.NameToLayer))
             {
-                string layerName = LayerMask.LayerToName(layer);
-
-                if (string.IsNullOrEmpty(layerName))
-                    continue;
-
+                int layer = LayerMask.NameToLayer(layerName);
                 string name = GetUniqueName(layerName, layer, usedNames);
                 string literal = GetStringLiteral(layerName);
                 layers.AppendLine($"        public static readonly int Layer{name} = global::UnityEngine.LayerMask.NameToLayer({literal});");
