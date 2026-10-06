@@ -24,4 +24,19 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage
     {
         public Buffer<Collider> Value;
     }
+
+    public class AreaDamageZoneView : IEntityComponent
+    {
+        public GameObject Value;
+    }
+
+    public class AreaDamageZoneShowTime : IEntityComponent
+    {
+        public ReactiveVariable<float> Value;
+    }
+
+    public class AreaDamageZoneCurrentTime : IEntityComponent
+    {
+        public ReactiveVariable<float> Value;
+    }
 }

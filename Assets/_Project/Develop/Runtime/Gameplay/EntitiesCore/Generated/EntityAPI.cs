@@ -77,6 +77,28 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddAreaDamageRadius() => AddAreaDamageRadius(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneCurrentTime AreaDamageZoneCurrentTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneCurrentTime>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AreaDamageZoneCurrentTime => AreaDamageZoneCurrentTimeC.Value;
+
+        public Entity AddAreaDamageZoneCurrentTime(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneCurrentTime { Value = @value });
+
+        public Entity AddAreaDamageZoneCurrentTime() => AddAreaDamageZoneCurrentTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneShowTime AreaDamageZoneShowTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneShowTime>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AreaDamageZoneShowTime => AreaDamageZoneShowTimeC.Value;
+
+        public Entity AddAreaDamageZoneShowTime(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneShowTime { Value = @value });
+
+        public Entity AddAreaDamageZoneShowTime() => AddAreaDamageZoneShowTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneView AreaDamageZoneViewC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneView>();
+        public global::UnityEngine.GameObject AreaDamageZoneView => AreaDamageZoneViewC.Value;
+
+        public Entity AddAreaDamageZoneView(global::UnityEngine.GameObject @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneView { Value = @value });
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.CurrentEnergy CurrentEnergyC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.CurrentEnergy>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> CurrentEnergy => CurrentEnergyC.Value;
 
@@ -242,6 +264,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddCanTeleport(global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.CanTeleport { Value = @value });
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportCenter TeleportCenterC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportCenter>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3> TeleportCenter => TeleportCenterC.Value;
+
+        public Entity AddTeleportCenter(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportCenter { Value = @value });
+
+        public Entity AddTeleportCenter() => AddTeleportCenter(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3>());
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportEnergyCost TeleportEnergyCostC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportEnergyCost>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> TeleportEnergyCost => TeleportEnergyCostC.Value;

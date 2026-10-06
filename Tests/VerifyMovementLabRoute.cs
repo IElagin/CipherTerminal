@@ -192,19 +192,27 @@ public static class VerifyMovementLabRoute
 
         // The random destination is not controlled; widen only the damage radius so every live target is inside it.
         teleporter.AreaDamageRadius.Value = 100;
-        Vector3 start = teleporter.Rigidbody.position;
+        Transform teleporterTransform = teleporter.Rigidbody.transform;
+        Vector3 start = teleporterTransform.position;
         teleporter.EnergyRegenerationCurrentTime.Value = teleporter.EnergyRegenerationInitialTime.Value;
         await PressKey(Key.T, token);
-        float teleportedDistance = Vector3.Distance(start, teleporter.Rigidbody.position);
+        float distanceFromCenter = Vector3.Distance(teleporter.TeleportCenter.Value, teleporterTransform.position);
 
-        if (teleportedDistance > teleporter.TeleportRadius.Value + .01f || teleporter.CurrentEnergy.Value != 100 - teleportCost)
-            throw new InvalidOperationException("T must teleport within radius N and spend X energy");
+        if (Vector3.Distance(start, teleporterTransform.position) < .01f || distanceFromCenter > teleporter.TeleportRadius.Value + .01f
+            || teleporter.CurrentEnergy.Value != 100 - teleportCost)
+            throw new InvalidOperationException("T must visibly move the teleporter within radius N of its center and spend X energy");
+
+        if (teleporter.AreaDamageZoneView.activeSelf == false)
+            throw new InvalidOperationException("Teleport must show the area damage zone");
 
         if (hero.CurrentHealth.Value != 100 - areaDamage || enemy.CurrentHealth.Value != 100 - areaDamage
             || teleporter.CurrentHealth.Value != 100)
             throw new InvalidOperationException("Teleport must damage every other entity in radius M once and skip itself");
 
         await UniTask.WaitUntil(() => teleporter.CurrentEnergy.Value != 100 - teleportCost, cancellationToken: token);
+
+        if (teleporter.AreaDamageZoneView.activeSelf)
+            throw new InvalidOperationException("The area damage zone must hide after its show time");
 
         if (teleporter.CurrentEnergy.Value != 100 - teleportCost + 10)
             throw new InvalidOperationException("Energy must regenerate by 10% of max every Z seconds");
@@ -236,7 +244,7 @@ public static class VerifyMovementLabRoute
         if (GetViews(session).Count != 0)
             throw new InvalidOperationException("Dead entities must release their views");
 
-        Debug.Log("PASS TELEPORTER: no movement components, ghost collider, T teleports within N for X energy, area damage D skips self, 10% regeneration every Z, low-energy refusal, Space damage, deaths and self-release of all three entities");
+        Debug.Log("PASS TELEPORTER: no movement components, ghost collider, T visibly teleports within N of its center for X energy with a temporary damage zone, area damage D skips self, 10% regeneration every Z, low-energy refusal, Space damage, deaths and self-release of all three entities");
     }
 
     private static int UnityLayersMask() => 1 << LayerMask.NameToLayer("Characters");

@@ -13,6 +13,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.Teleport
         private ReactiveEvent _teleportRequest;
         private ReactiveEvent<Vector3> _teleportEvent;
 
+        private ReactiveVariable<Vector3> _center;
         private ReactiveVariable<float> _radius;
         private ReactiveVariable<float> _energyCost;
         private ReactiveVariable<float> _currentEnergy;
@@ -27,6 +28,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.Teleport
             _teleportRequest = entity.TeleportRequest;
             _teleportEvent = entity.TeleportEvent;
 
+            _center = entity.TeleportCenter;
             _radius = entity.TeleportRadius;
             _energyCost = entity.TeleportEnergyCost;
             _currentEnergy = entity.CurrentEnergy;
@@ -51,9 +53,11 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.Teleport
             }
 
             Vector2 offset = Random.insideUnitCircle * _radius.Value;
-            Vector3 position = _rigidbody.position + new Vector3(offset.x, 0, offset.y);
+            Vector3 position = _center.Value + new Vector3(offset.x, 0, offset.y);
 
+            // A kinematic body set only through Rigidbody.position is not synced back to the transform here.
             _rigidbody.position = position;
+            _rigidbody.transform.position = position;
             _currentEnergy.Value -= _energyCost.Value;
             _teleportEvent.Invoke(position);
             Debug.Log("Телепорт, энергия: " + _currentEnergy.Value);

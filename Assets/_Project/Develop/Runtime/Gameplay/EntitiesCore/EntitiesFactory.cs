@@ -78,6 +78,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
                 .AddEnergyRegenerationPercent(new ReactiveVariable<float>(0.1f))
                 .AddEnergyRegenerationInitialTime(new ReactiveVariable<float>(2))
                 .AddEnergyRegenerationCurrentTime()
+                .AddTeleportCenter(new ReactiveVariable<Vector3>(position))
                 .AddTeleportRadius(new ReactiveVariable<float>(6))
                 .AddTeleportEnergyCost(new ReactiveVariable<float>(25))
                 .AddTeleportRequest()
@@ -85,7 +86,9 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
                 .AddAreaDamage(new ReactiveVariable<float>(30))
                 .AddAreaDamageRadius(new ReactiveVariable<float>(2.5f))
                 .AddAreaDamageMask(UnityLayers.LayerMaskCharacters)
-                .AddAreaDamageCollidersBuffer(new Buffer<Collider>(64));
+                .AddAreaDamageCollidersBuffer(new Buffer<Collider>(64))
+                .AddAreaDamageZoneShowTime(new ReactiveVariable<float>(0.6f))
+                .AddAreaDamageZoneCurrentTime();
 
             ICompositeCondition canTeleport = new CompositeCondition()
                 .Add(new FuncCondition(() => entity.IsDead.Value == false))
@@ -96,7 +99,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             entity
                 .AddSystem(new EnergyRegenerationSystem())
                 .AddSystem(new TeleportSystem())
-                .AddSystem(new AreaDamageOnTeleportSystem(_collidersRegistryService));
+                .AddSystem(new AreaDamageOnTeleportSystem(_collidersRegistryService))
+                .AddSystem(new AreaDamageZoneViewSystem());
 
             AddLifeCycleSystems(entity);
             _monoEntitiesFactory.Create(entity, position, TeleporterPrefabPath);
