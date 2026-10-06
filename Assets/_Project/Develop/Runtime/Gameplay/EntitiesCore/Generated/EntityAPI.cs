@@ -3,6 +3,12 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 {
     public partial class Entity
     {
+        public global::Assets._Project.Develop.Runtime.Gameplay.Common.AnimatorComponent AnimatorC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Common.AnimatorComponent>();
+        public global::UnityEngine.Animator Animator => AnimatorC.Value;
+
+        public Entity AddAnimator(global::UnityEngine.Animator @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Common.AnimatorComponent { Value = @value });
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Common.CharacterControllerComponent CharacterControllerC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Common.CharacterControllerComponent>();
         public global::UnityEngine.CharacterController CharacterController => CharacterControllerC.Value;
 

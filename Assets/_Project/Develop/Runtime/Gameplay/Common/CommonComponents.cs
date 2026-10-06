@@ -17,4 +17,9 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Common
     {
         public Transform Value;
     }
+
+    public class AnimatorComponent : IEntityComponent
+    {
+        public Animator Value;
+    }
 }

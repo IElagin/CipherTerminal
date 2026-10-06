@@ -1,6 +1,7 @@
 using Assets._Project.Develop.Runtime.Configs.Gameplay.Enemies;
 using Assets._Project.Develop.Runtime.Configs.Gameplay.Hero;
 using Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Mono;
+using Assets._Project.Develop.Runtime.Gameplay.Features.Animation;
 using Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage;
 using Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage;
 using Assets._Project.Develop.Runtime.Gameplay.Features.EnemiesFeature;
@@ -54,7 +55,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             HeroConfig config = _configsProvider.GetConfig<HeroConfig>();
             Entity entity = CreateMortalMovementEntity(config.MoveSpeed, config.RotationSpeed)
                 .AddSystem(new CharacterControllerMovementSystem())
-                .AddSystem(new TransformRotationSystem());
+                .AddSystem(new TransformRotationSystem())
+                .AddSystem(new CharacterAnimationSystem());
 
             AddLifeCycleSystems(entity);
             _monoEntitiesFactory.Create(entity, position, config.PrefabPath);
