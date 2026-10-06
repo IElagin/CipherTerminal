@@ -41,7 +41,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             EnemyConfig config = _configsProvider.GetConfig<EnemiesListConfig>().GetConfigFor(type);
             Entity entity = CreateMortalMovementEntity(config.MoveSpeed, config.RotationSpeed)
                 .AddSystem(new RigidbodyMovementSystem())
-                .AddSystem(new RigidbodyRotationSystem());
+                .AddSystem(new RigidbodyRotationSystem())
+                .AddSystem(new CharacterAnimationSystem());
 
             AddLifeCycleSystems(entity);
             _monoEntitiesFactory.Create(entity, position, config.PrefabPath);
