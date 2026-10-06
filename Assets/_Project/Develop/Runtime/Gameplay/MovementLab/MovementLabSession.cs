@@ -41,9 +41,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
             if (_isRunning == false)
                 return;
 
-            Vector3 direction = _input.ReadDirection();
-            SetDirection(_hero, direction);
-            SetDirection(_enemy, direction);
+            SetDirection(_hero, _input.ReadDirection());
 
             if (_input.IsTeleportPressed())
                 _teleporter.TeleportRequest.Invoke();

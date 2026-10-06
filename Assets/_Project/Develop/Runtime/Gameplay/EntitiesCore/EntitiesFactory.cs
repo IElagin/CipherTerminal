@@ -39,7 +39,11 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
         public Entity CreateEnemy(EnemyTypes type, Vector3 position)
         {
             EnemyConfig config = _configsProvider.GetConfig<EnemiesListConfig>().GetConfigFor(type);
-            Entity entity = CreateMortalMovementEntity(config.MoveSpeed, config.RotationSpeed)
+            Entity entity = CreateMovementEntity(config.MoveSpeed, config.RotationSpeed);
+
+            AddHealth(entity, 100, 2);
+
+            entity
                 .AddSystem(new RigidbodyMovementSystem())
                 .AddSystem(new RigidbodyRotationSystem())
                 .AddSystem(new CharacterAnimationSystem());
@@ -54,7 +58,11 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
         public Entity CreateHero(Vector3 position)
         {
             HeroConfig config = _configsProvider.GetConfig<HeroConfig>();
-            Entity entity = CreateMortalMovementEntity(config.MoveSpeed, config.RotationSpeed)
+            Entity entity = CreateMovementEntity(config.MoveSpeed, config.RotationSpeed);
+
+            AddHealth(entity, 100, 2);
+
+            entity
                 .AddSystem(new CharacterControllerMovementSystem())
                 .AddSystem(new TransformRotationSystem())
                 .AddSystem(new CharacterAnimationSystem());
@@ -109,7 +117,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             return entity;
         }
 
-        private Entity CreateMortalMovementEntity(float moveSpeed, float rotationSpeed)
+        private Entity CreateMovementEntity(float moveSpeed, float rotationSpeed)
         {
             Entity entity = new Entity()
                 .AddMoveDirection()
@@ -118,8 +126,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
                 .AddRotationDirection()
                 .AddRotationSpeed(new ReactiveVariable<float>(rotationSpeed));
 
-            AddHealth(entity, 100, 2);
-
+            // Movement stops once the entity has health and dies; AddHealth is called by each recipe.
             ICompositeCondition canMove = new CompositeCondition()
                 .Add(new FuncCondition(() => entity.IsDead.Value == false));
 

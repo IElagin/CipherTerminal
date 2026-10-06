@@ -47,7 +47,7 @@ public static class VerifyMovementLabRoute
         RequireCharacterCount(ExpectedCharacters);
         RequireSingleAudioListener();
         await VerifyCharacterConfigs(session, timeout.Token);
-        await VerifySimultaneousMovement(session, timeout.Token);
+        await VerifyHeroControl(session, timeout.Token);
         var firstViews = Object.FindObjectsByType<MonoEntity>().Select(view => view.GetEntityId()).ToArray();
         MovementLabScreenView hud = Object.FindAnyObjectByType<MovementLabScreenView>();
         ((Button)typeof(MovementLabScreenView).GetField("_backButton", PrivateInstance).GetValue(hud)).onClick.Invoke();
@@ -78,7 +78,7 @@ public static class VerifyMovementLabRoute
         session = (MovementLabSession)typeof(MovementLabBootstrap).GetField("_session", PrivateInstance).GetValue(bootstrap);
         await VerifyTeleporter(session, timeout.Token);
 
-        const string result = "PASS L4/L5 ROUTE AND CONFIGS: Hero/Basic/Fast settings from provider, independent mutable entity data; MainMenu lab button -> MovementLab (3 views, both L4 characters move and rotate from queued keyboard input) -> HUD back button -> MainMenu (0 views, scope released entities and map cleared) -> lab (3 fresh views) -> teleporter T/Space, energy, area damage, deaths and self-release. Physical keyboard acceptance remains manual.";
+        const string result = "PASS L4/L5 ROUTE AND CONFIGS: Hero/Basic/Fast settings from provider, independent mutable entity data; MainMenu lab button -> MovementLab (3 views, the hero moves and rotates from queued keyboard input, the enemy stands still) -> HUD back button -> MainMenu (0 views, scope released entities and map cleared) -> lab (3 fresh views) -> teleporter T/Space, energy, area damage, deaths and self-release. Physical keyboard acceptance remains manual.";
         Debug.Log(result);
 
         return result;
@@ -135,7 +135,7 @@ public static class VerifyMovementLabRoute
         Debug.Log("PASS CHARACTER CONFIGS: Hero uses CharacterController; Basic/Fast enum selects provider settings; repeated Fast spawns have independent data");
     }
 
-    private static async UniTask VerifySimultaneousMovement(MovementLabSession session, CancellationToken token)
+    private static async UniTask VerifyHeroControl(MovementLabSession session, CancellationToken token)
     {
         var hero = (Entity)typeof(MovementLabSession).GetField("_hero", PrivateInstance).GetValue(session);
         var enemy = (Entity)typeof(MovementLabSession).GetField("_enemy", PrivateInstance).GetValue(session);
@@ -151,22 +151,20 @@ public static class VerifyMovementLabRoute
         {
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.D));
             await UniTask.Delay(TimeSpan.FromSeconds(MovementSeconds), cancellationToken: token);
-            if (heroTransform.position.x <= heroStart.x + .1f || enemyTransform.position.x <= enemyStart.x + .1f)
-                throw new InvalidOperationException("Both characters must move from the same input");
-            if (Vector3.Dot(heroTransform.forward, Vector3.right) < .9f || Vector3.Dot(enemyTransform.forward, Vector3.right) < .9f)
-                throw new InvalidOperationException("Both character rotation implementations must turn right");
+            if (heroTransform.position.x <= heroStart.x + .1f || Vector3.Dot(heroTransform.forward, Vector3.right) < .9f)
+                throw new InvalidOperationException("The hero must move and turn right from D");
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.W));
             await UniTask.Delay(TimeSpan.FromSeconds(MovementSeconds), cancellationToken: token);
-            if (heroTransform.position.z <= heroStart.z + .1f || enemyTransform.position.z <= enemyStart.z + .1f)
-                throw new InvalidOperationException("Both characters must respond to the changed direction");
-            if (Vector3.Dot(heroTransform.forward, Vector3.forward) < .9f || Vector3.Dot(enemyTransform.forward, Vector3.forward) < .9f)
-                throw new InvalidOperationException("Both characters must turn toward the changed direction");
+            if (heroTransform.position.z <= heroStart.z + .1f || Vector3.Dot(heroTransform.forward, Vector3.forward) < .9f)
+                throw new InvalidOperationException("The hero must respond to the changed direction");
             InputSystem.QueueStateEvent(keyboard, new KeyboardState());
             await UniTask.Delay(TimeSpan.FromSeconds(StopSeconds), cancellationToken: token);
-            if (hero.MoveDirection.Value != Vector3.zero || enemy.MoveDirection.Value != Vector3.zero
+            if (hero.MoveDirection.Value != Vector3.zero)
+                throw new InvalidOperationException("Releasing input must stop the hero");
+            if (Vector3.Distance(enemyTransform.position, enemyStart) > .05f || enemy.MoveDirection.Value != Vector3.zero
                 || enemy.Rigidbody.linearVelocity.sqrMagnitude > .001f)
-                throw new InvalidOperationException("Releasing input must stop both characters");
-            Debug.Log("PASS BOTH CHARACTERS: queued D/W input moves and rotates both; release stops both");
+                throw new InvalidOperationException("The enemy must stand still while the player drives the hero");
+            Debug.Log("PASS HERO CONTROL: queued D/W input moves and rotates the hero; release stops it; the enemy stands still");
         }
         finally
         {

@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u041E\u0420\u0410\u041D\u0416\u0415\u0412\u042B\u0419: CHARACTER CONTROLLER\n\u0414\u0412\u0418\u0416\u0415\u041D\u0418\u0415
+  m_text: "\u0413\u0415\u0420\u041E\u0419: CHARACTER CONTROLLER\n\u0414\u0412\u0418\u0416\u0415\u041D\u0418\u0415
     + \u041F\u041E\u0412\u041E\u0420\u041E\u0422 TRANSFORM"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ccb2c9b3e82c349b3a8b0a41c6e561e6, type: 2}
@@ -668,9 +668,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "WASD / \u0421\u0422\u0420\u0415\u041B\u041A\u0418 \u2014 \u041E\u0411\u0410
-    \u041F\u0415\u0420\u0421\u041E\u041D\u0410\u0416\u0410 \xB7 T \u2014 \u0422\u0415\u041B\u0415\u041F\u041E\u0420\u0422
-    \xB7 \u041F\u0420\u041E\u0411\u0415\u041B \u2014 \u0423\u0420\u041E\u041D \u0422\u0415\u041B\u0415\u041F\u041E\u0420\u0422\u0401\u0420\u0423"
+  m_text: "WASD / \u0421\u0422\u0420\u0415\u041B\u041A\u0418 \u2014 \u0413\u0415\u0420\u041E\u0419
+    \xB7 T \u2014 \u0422\u0415\u041B\u0415\u041F\u041E\u0420\u0422 \xB7 \u041F\u0420\u041E\u0411\u0415\u041B
+    \u2014 \u0423\u0420\u041E\u041D \u0422\u0415\u041B\u0415\u041F\u041E\u0420\u0422\u0401\u0420\u0423"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ccb2c9b3e82c349b3a8b0a41c6e561e6, type: 2}
   m_sharedMaterial: {fileID: 6580335795315028862, guid: ccb2c9b3e82c349b3a8b0a41c6e561e6, type: 2}
@@ -807,8 +807,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u0421\u0418\u041D\u0418\u0419: RIGIDBODY\n\u0414\u0412\u0418\u0416\u0415\u041D\u0418\u0415
-    + \u041F\u041E\u0412\u041E\u0420\u041E\u0422"
+  m_text: "\u0412\u0420\u0410\u0413: RIGIDBODY\n\u0421\u0422\u041E\u0418\u0422 \u041D\u0410
+    \u041C\u0415\u0421\u0422\u0415"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ccb2c9b3e82c349b3a8b0a41c6e561e6, type: 2}
   m_sharedMaterial: {fileID: 6580335795315028862, guid: ccb2c9b3e82c349b3a8b0a41c6e561e6, type: 2}
