@@ -29,5 +29,9 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
 
             return new Vector3(horizontal, 0, vertical).normalized;
         }
+
+        public bool IsTeleportPressed() => Keyboard.current != null && Keyboard.current.tKey.wasPressedThisFrame;
+
+        public bool IsDamagePressed() => Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
     }
 }

@@ -14,20 +14,51 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
     {
         public static void Process(IContainerBuilder builder)
         {
+            EntitiesLifeContext entitiesLifeContext = null;
+            MonoEntitiesFactory monoEntitiesFactory = null;
+
+            builder.Register(CreateEntitiesFactory, Lifetime.Scoped);
+            builder.Register(container => entitiesLifeContext ??= CreateEntitiesLifeContext(container), Lifetime.Transient);
+            builder.Register(CreateCollidersRegistryService, Lifetime.Scoped);
+            builder.Register(container => monoEntitiesFactory ??= CreateMonoEntitiesFactory(container), Lifetime.Transient);
+            builder.RegisterBuildCallback(container => container.Resolve<MonoEntitiesFactory>().Initialize());
+
+            // VContainer disposes tracked services in reverse creation order; the course releases entities before views.
+            builder.RegisterDisposeCallback(container =>
+            {
+                entitiesLifeContext.Dispose();
+                monoEntitiesFactory.Dispose();
+            });
+
             builder.Register(CreateSession, Lifetime.Scoped);
             builder.Register<SceneNavigator>(Lifetime.Scoped);
             builder.Register(CreateUIRoot, Lifetime.Scoped);
             builder.Register(CreateScreenPresenter, Lifetime.Scoped);
         }
 
+        private static EntitiesLifeContext CreateEntitiesLifeContext(IObjectResolver container)
+            => new EntitiesLifeContext();
+
+        private static CollidersRegistryService CreateCollidersRegistryService(IObjectResolver container)
+            => new CollidersRegistryService();
+
+        private static MonoEntitiesFactory CreateMonoEntitiesFactory(IObjectResolver container)
+        {
+            return new MonoEntitiesFactory(container.Resolve<ResourcesAssetLoader>(),
+                container.Resolve<EntitiesLifeContext>(), container.Resolve<CollidersRegistryService>());
+        }
+
+        private static EntitiesFactory CreateEntitiesFactory(IObjectResolver container)
+        {
+            return new EntitiesFactory(container.Resolve<EntitiesLifeContext>(),
+                container.Resolve<MonoEntitiesFactory>(), container.Resolve<CollidersRegistryService>(),
+                container.Resolve<ConfigsProviderService>());
+        }
+
         private static MovementLabSession CreateSession(IObjectResolver container)
         {
-            var lifeContext = new EntitiesLifeContext();
-            var monoEntitiesFactory = new MonoEntitiesFactory(container.Resolve<ResourcesAssetLoader>(), lifeContext);
-            var entitiesFactory = new EntitiesFactory(lifeContext, monoEntitiesFactory,
-                container.Resolve<ConfigsProviderService>());
-
-            return new MovementLabSession(lifeContext, monoEntitiesFactory, entitiesFactory, new MovementLabInput());
+            return new MovementLabSession(container.Resolve<EntitiesLifeContext>(),
+                container.Resolve<EntitiesFactory>(), new MovementLabInput());
         }
 
         private static UIRoot CreateUIRoot(IObjectResolver container)

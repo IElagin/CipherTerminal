@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8190878467183897533}
   - component: {fileID: 4225890481043316649}
   - component: {fileID: 1840484203033694126}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -99,7 +99,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1874002419413283120}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ViewContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 7332809637476557434}
   - component: {fileID: 2508662719557801700}
   - component: {fileID: 5423029599345314192}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -226,7 +226,8 @@ GameObject:
   - component: {fileID: 3075292602998425568}
   - component: {fileID: 2396320725978554517}
   - component: {fileID: 4621569771970082395}
-  m_Layer: 0
+  - component: {fileID: 2084767496261990132}
+  m_Layer: 6
   m_Name: CharacterControllerCharacter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -310,3 +311,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b09aad4c2e4040ce9244fe41be29537, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Common.TransformEntityRegistrator
+--- !u!114 &2084767496261990132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4971387164825286554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45a05490dcc6841ee80e0ce573920c23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DisableCollidersOnDeathRegistrator
+  _colliders:
+  - {fileID: 3075292602998425568}

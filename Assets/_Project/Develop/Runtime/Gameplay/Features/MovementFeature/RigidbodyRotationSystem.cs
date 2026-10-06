@@ -1,5 +1,6 @@
 using Assets._Project.Develop.Runtime.Gameplay.EntitiesCore;
 using Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Systems;
+using Assets._Project.Develop.Runtime.Utilities.Conditions;
 using Assets._Project.Develop.Runtime.Utilities.Reactive;
 using UnityEngine;
 
@@ -11,15 +12,22 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature
         private ReactiveVariable<float> _speed;
         private Rigidbody _rigidbody;
 
+        private ICompositeCondition _canRotate;
+
         public void OnInit(Entity entity)
         {
             _direction = entity.RotationDirection;
             _speed = entity.RotationSpeed;
             _rigidbody = entity.Rigidbody;
+
+            _canRotate = entity.CanRotate;
         }
 
         public void OnFixedUpdate(float deltaTime)
         {
+            if (_canRotate.Evaluate() == false)
+                return;
+
             Vector3 direction = _direction.Value;
 
             if (direction == Vector3.zero)

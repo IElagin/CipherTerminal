@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8857980511452801991}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ViewContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46,7 +46,8 @@ GameObject:
   - component: {fileID: 186165307689075829}
   - component: {fileID: 8529781296839550364}
   - component: {fileID: 4105669293201720254}
-  m_Layer: 0
+  - component: {fileID: 6622013264899958169}
+  m_Layer: 6
   m_Name: RigidbodyCharacter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -141,6 +142,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4deb094014e3d45a4af18ffbdb1f0823, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Common.RigidbodyEntityRegistrator
+--- !u!114 &6622013264899958169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3073863569909089168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45a05490dcc6841ee80e0ce573920c23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DisableCollidersOnDeathRegistrator
+  _colliders:
+  - {fileID: 8529781296839550364}
 --- !u!1 &8114754827502402087
 GameObject:
   m_ObjectHideFlags: 0
@@ -152,7 +167,7 @@ GameObject:
   - component: {fileID: 9519035425285715}
   - component: {fileID: 4472643137330277211}
   - component: {fileID: 8145746069167006440}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -242,7 +257,7 @@ GameObject:
   - component: {fileID: 7549541934459903793}
   - component: {fileID: 7563190213740577992}
   - component: {fileID: 5247739996055889349}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}

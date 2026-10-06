@@ -21,7 +21,7 @@ public static class VerifyL4
     {
         Require(EditorUtility.scriptCompilationFailed == false, "current scripts compile");
         var life = new EntitiesLifeContext();
-        var views = new MonoEntitiesFactory(new ResourcesAssetLoader(), life);
+        var views = new MonoEntitiesFactory(new ResourcesAssetLoader(), life, new CollidersRegistryService());
         views.Initialize();
         var events = new List<string>();
         var first = new ProbeSystem(events);

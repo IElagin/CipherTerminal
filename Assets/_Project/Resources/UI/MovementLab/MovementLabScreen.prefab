@@ -668,8 +668,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "WASD / \u0421\u0422\u0420\u0415\u041B\u041A\u0418 \u2014 \u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415
-    \u041E\u0411\u041E\u0418\u041C\u0418 \u041F\u0415\u0420\u0421\u041E\u041D\u0410\u0416\u0410\u041C\u0418"
+  m_text: "WASD / \u0421\u0422\u0420\u0415\u041B\u041A\u0418 \u2014 \u041E\u0411\u0410
+    \u041F\u0415\u0420\u0421\u041E\u041D\u0410\u0416\u0410 \xB7 T \u2014 \u0422\u0415\u041B\u0415\u041F\u041E\u0420\u0422
+    \xB7 \u041F\u0420\u041E\u0411\u0415\u041B \u2014 \u0423\u0420\u041E\u041D \u0422\u0415\u041B\u0415\u041F\u041E\u0420\u0422\u0401\u0420\u0423"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ccb2c9b3e82c349b3a8b0a41c6e561e6, type: 2}
   m_sharedMaterial: {fileID: 6580335795315028862, guid: ccb2c9b3e82c349b3a8b0a41c6e561e6, type: 2}
@@ -691,7 +692,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2

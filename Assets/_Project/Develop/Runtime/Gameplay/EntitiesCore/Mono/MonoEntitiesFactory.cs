@@ -10,12 +10,15 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Mono
     {
         private readonly ResourcesAssetLoader _assetsLoader;
         private readonly EntitiesLifeContext _lifeContext;
+        private readonly CollidersRegistryService _collidersRegistryService;
         private readonly Dictionary<Entity, MonoEntity> _views = new();
 
-        public MonoEntitiesFactory(ResourcesAssetLoader assetsLoader, EntitiesLifeContext lifeContext)
+        public MonoEntitiesFactory(ResourcesAssetLoader assetsLoader, EntitiesLifeContext lifeContext,
+            CollidersRegistryService collidersRegistryService)
         {
             _assetsLoader = assetsLoader;
             _lifeContext = lifeContext;
+            _collidersRegistryService = collidersRegistryService;
         }
 
         public void Initialize() => _lifeContext.Released += OnEntityReleased;
@@ -24,7 +27,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Mono
         {
             MonoEntity prefab = _assetsLoader.Load<MonoEntity>(path);
             MonoEntity view = Object.Instantiate(prefab, position, Quaternion.identity);
-            view.Setup(entity);
+            view.Initialize(_collidersRegistryService);
+            view.Link(entity);
             _views.Add(entity, view);
 
             return view;
