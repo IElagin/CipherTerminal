@@ -139,6 +139,9 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
                 .AddAreaDamageRadius(new ReactiveVariable<float>(2.5f))
                 .AddAreaDamageMask(UnityLayers.LayerMaskCharacters)
                 .AddAreaDamageCollidersBuffer(new Buffer<Collider>(64))
+                .AddAreaDamageCollidersDetectedEvent()
+                .AddAreaDamageEntitiesBuffer(new Buffer<Entity>(64))
+                .AddAreaDamageTargetsDetectedEvent()
                 .AddAreaDamageZoneShowTime(new ReactiveVariable<float>(0.6f))
                 .AddAreaDamageZoneCurrentTime();
 
@@ -151,7 +154,9 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             entity
                 .AddSystem(new EnergyRegenerationSystem())
                 .AddSystem(new TeleportSystem())
-                .AddSystem(new AreaDamageOnTeleportSystem(_collidersRegistryService))
+                .AddSystem(new AreaDamageDetectingSystem())
+                .AddSystem(new AreaDamageEntitiesFilterSystem(_collidersRegistryService))
+                .AddSystem(new DealAreaDamageSystem())
                 .AddSystem(new AreaDamageZoneViewSystem());
 
             AddLifeCycleSystems(entity);

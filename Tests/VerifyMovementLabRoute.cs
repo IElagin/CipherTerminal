@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -92,6 +93,15 @@ public static class VerifyMovementLabRoute
             throw new InvalidOperationException($"Expected one active AudioListener, found {count}");
     }
 
+    private static Entity FindHero(MovementLabSession session)
+        => LabEntities(session).Single(entity => entity.HasComponent<CharacterControllerComponent>());
+
+    private static Entity FindEnemy(MovementLabSession session)
+        => LabEntities(session).Single(entity => entity.HasComponent<RigidbodyComponent>() && entity.HasComponent<MoveSpeed>());
+
+    private static IReadOnlyList<Entity> LabEntities(MovementLabSession session)
+        => ((EntitiesLifeContext)typeof(MovementLabSession).GetField("_lifeContext", PrivateInstance).GetValue(session)).Entities;
+
     private static async UniTask VerifyCharacterConfigs(MovementLabSession session, CancellationToken token)
     {
         const float speedChange = 1;
@@ -99,7 +109,7 @@ public static class VerifyMovementLabRoute
         var provider = (ConfigsProviderService)typeof(EntitiesFactory).GetField("_configsProvider", PrivateInstance).GetValue(factory);
         var life = (EntitiesLifeContext)typeof(MovementLabSession).GetField("_lifeContext", PrivateInstance).GetValue(session);
         var views = GetViews(session);
-        var hero = (Entity)typeof(MovementLabSession).GetField("_hero", PrivateInstance).GetValue(session);
+        var hero = FindHero(session);
         Entity basic = views.Keys.Cast<Entity>()
             .Single(entity => entity.HasComponent<RigidbodyComponent>() && entity.HasComponent<MoveSpeed>());
         HeroConfig heroConfig = provider.GetConfig<HeroConfig>();
@@ -137,8 +147,8 @@ public static class VerifyMovementLabRoute
 
     private static async UniTask VerifyHeroControl(MovementLabSession session, CancellationToken token)
     {
-        var hero = (Entity)typeof(MovementLabSession).GetField("_hero", PrivateInstance).GetValue(session);
-        var enemy = (Entity)typeof(MovementLabSession).GetField("_enemy", PrivateInstance).GetValue(session);
+        var hero = FindHero(session);
+        var enemy = FindEnemy(session);
         Transform heroTransform = hero.Transform;
         Transform enemyTransform = enemy.Rigidbody.transform;
         Vector3 heroStart = heroTransform.position;
@@ -178,8 +188,8 @@ public static class VerifyMovementLabRoute
         const float teleportCost = 25;
         const float areaDamage = 30;
         const float testDamage = 50;
-        var hero = (Entity)typeof(MovementLabSession).GetField("_hero", PrivateInstance).GetValue(session);
-        var enemy = (Entity)typeof(MovementLabSession).GetField("_enemy", PrivateInstance).GetValue(session);
+        var hero = FindHero(session);
+        var enemy = FindEnemy(session);
         var teleporter = (Entity)typeof(MovementLabSession).GetField("_teleporter", PrivateInstance).GetValue(session);
 
         if (teleporter.HasComponent<MoveSpeed>() || teleporter.HasComponent<RotationSpeed>())

@@ -25,6 +25,21 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage
         public Buffer<Collider> Value;
     }
 
+    public class AreaDamageCollidersDetectedEvent : IEntityComponent
+    {
+        public ReactiveEvent Value;
+    }
+
+    public class AreaDamageEntitiesBuffer : IEntityComponent
+    {
+        public Buffer<Entity> Value;
+    }
+
+    public class AreaDamageTargetsDetectedEvent : IEntityComponent
+    {
+        public ReactiveEvent Value;
+    }
+
     public class AreaDamageZoneView : IEntityComponent
     {
         public GameObject Value;

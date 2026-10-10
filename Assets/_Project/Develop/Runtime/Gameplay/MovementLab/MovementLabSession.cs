@@ -18,8 +18,6 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
         private readonly BrainsFactory _brainsFactory;
         private readonly MovementLabInput _input;
 
-        private Entity _hero;
-        private Entity _enemy;
         private Entity _teleporter;
         private bool _isRunning;
 
@@ -35,11 +33,11 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
 
         public void Initialize()
         {
-            _enemy = _entitiesFactory.CreateEnemy(EnemyTypes.Basic, _enemySpawn);
-            _hero = _entitiesFactory.CreateHero(_heroSpawn);
+            _entitiesFactory.CreateEnemy(EnemyTypes.Basic, _enemySpawn);
+            Entity hero = _entitiesFactory.CreateHero(_heroSpawn);
             _teleporter = _entitiesFactory.CreateTeleporter(_teleporterSpawn);
 
-            _brainsFactory.CreateManualHeroBrain(_hero);
+            _brainsFactory.CreateManualHeroBrain(hero);
         }
 
         public void Run() => _isRunning = true;

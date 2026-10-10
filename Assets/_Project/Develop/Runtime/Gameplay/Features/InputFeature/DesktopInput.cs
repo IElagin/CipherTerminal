@@ -26,7 +26,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.InputFeature
                 float horizontal = GetAxis(keyboard.aKey, keyboard.dKey) + GetAxis(keyboard.leftArrowKey, keyboard.rightArrowKey);
                 float vertical = GetAxis(keyboard.sKey, keyboard.wKey) + GetAxis(keyboard.downArrowKey, keyboard.upArrowKey);
 
-                return new Vector3(Mathf.Clamp(horizontal, -1, 1), 0, Mathf.Clamp(vertical, -1, 1));
+                return new Vector3(Mathf.Clamp(horizontal, -1, 1), 0, Mathf.Clamp(vertical, -1, 1)).normalized;
             }
         }
 

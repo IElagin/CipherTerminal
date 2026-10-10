@@ -151,6 +151,36 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             return result;
         }
 
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageCollidersDetectedEvent AreaDamageCollidersDetectedEventC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageCollidersDetectedEvent>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent AreaDamageCollidersDetectedEvent => AreaDamageCollidersDetectedEventC.Value;
+
+        public Entity AddAreaDamageCollidersDetectedEvent(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageCollidersDetectedEvent { Value = @value });
+
+        public Entity AddAreaDamageCollidersDetectedEvent() => AddAreaDamageCollidersDetectedEvent(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent());
+
+        public bool TryGetAreaDamageCollidersDetectedEvent(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageCollidersDetectedEvent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageEntitiesBuffer AreaDamageEntitiesBufferC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageEntitiesBuffer>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity> AreaDamageEntitiesBuffer => AreaDamageEntitiesBufferC.Value;
+
+        public Entity AddAreaDamageEntitiesBuffer(global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageEntitiesBuffer { Value = @value });
+
+        public bool TryGetAreaDamageEntitiesBuffer(out global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageEntitiesBuffer component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageMask AreaDamageMaskC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageMask>();
         public global::UnityEngine.LayerMask AreaDamageMask => AreaDamageMaskC.Value;
 
@@ -176,6 +206,22 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
         public bool TryGetAreaDamageRadius(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
         {
             bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageRadius component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageTargetsDetectedEvent AreaDamageTargetsDetectedEventC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageTargetsDetectedEvent>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent AreaDamageTargetsDetectedEvent => AreaDamageTargetsDetectedEventC.Value;
+
+        public Entity AddAreaDamageTargetsDetectedEvent(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageTargetsDetectedEvent { Value = @value });
+
+        public Entity AddAreaDamageTargetsDetectedEvent() => AddAreaDamageTargetsDetectedEvent(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent());
+
+        public bool TryGetAreaDamageTargetsDetectedEvent(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageTargetsDetectedEvent component);
             @value = result ? component.Value : default;
 
             return result;

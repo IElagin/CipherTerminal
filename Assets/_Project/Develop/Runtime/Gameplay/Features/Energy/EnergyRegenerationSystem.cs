@@ -29,7 +29,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.Energy
         {
             _currentTime.Value -= deltaTime;
 
-            if (TimeIsOver() == false)
+            if (_currentTime.Value > 0)
                 return;
 
             _currentTime.Value = _initialTime.Value;
@@ -40,7 +40,5 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.Energy
             _currentEnergy.Value = MathF.Min(_currentEnergy.Value + _maxEnergy.Value * _regenerationPercent.Value, _maxEnergy.Value);
             Debug.Log("Энергия восстановлена: " + _currentEnergy.Value);
         }
-
-        private bool TimeIsOver() => _currentTime.Value <= 0;
     }
 }
