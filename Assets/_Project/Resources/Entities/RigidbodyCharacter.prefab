@@ -47,6 +47,7 @@ GameObject:
   - component: {fileID: 4105669293201720254}
   - component: {fileID: 6622013264899958169}
   - component: {fileID: 4561569537073908617}
+  - component: {fileID: 2690632294698174859}
   m_Layer: 6
   m_Name: RigidbodyCharacter
   m_TagString: Untagged
@@ -169,6 +170,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Common.AnimatorEntityRegistrator
   _animator: {fileID: 8972090760601965487}
+--- !u!114 &2690632294698174859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3073863569909089168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b09aad4c2e4040ce9244fe41be29537, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Common.TransformEntityRegistrator
 --- !u!1001 &3308404835446828606
 PrefabInstance:
   m_ObjectHideFlags: 0

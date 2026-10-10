@@ -11,6 +11,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.Teleport
     public class TeleportSystem : IInitializableSystem, IDisposableSystem
     {
         private ReactiveEvent _teleportRequest;
+        private ReactiveEvent<Vector3> _teleportToPointRequest;
         private ReactiveEvent<Vector3> _teleportEvent;
 
         private ReactiveVariable<Vector3> _center;
@@ -22,10 +23,12 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.Teleport
         private ICompositeCondition _canTeleport;
 
         private IDisposable _requestDisposable;
+        private IDisposable _toPointRequestDisposable;
 
         public void OnInit(Entity entity)
         {
             _teleportRequest = entity.TeleportRequest;
+            _teleportToPointRequest = entity.TeleportToPointRequest;
             _teleportEvent = entity.TeleportEvent;
 
             _center = entity.TeleportCenter;
@@ -37,24 +40,47 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.Teleport
             _canTeleport = entity.CanTeleport;
 
             _requestDisposable = _teleportRequest.Subscribe(OnTeleportRequest);
+            _toPointRequestDisposable = _teleportToPointRequest.Subscribe(OnTeleportToPointRequest);
         }
 
         public void OnDispose()
         {
             _requestDisposable.Dispose();
+            _toPointRequestDisposable.Dispose();
         }
 
         private void OnTeleportRequest()
         {
-            if (_canTeleport.Evaluate() == false)
-            {
-                Debug.Log("Телепорт недоступен, энергия: " + _currentEnergy.Value);
+            if (CanTeleport() == false)
                 return;
-            }
 
             Vector2 offset = Random.insideUnitCircle * _radius.Value;
-            Vector3 position = _center.Value + new Vector3(offset.x, 0, offset.y);
+            Teleport(_center.Value + new Vector3(offset.x, 0, offset.y));
+        }
 
+        // The jump towards a point is limited by the same teleport radius, counted from the current position.
+        private void OnTeleportToPointRequest(Vector3 point)
+        {
+            if (CanTeleport() == false)
+                return;
+
+            Vector3 position = _rigidbody.position;
+            Vector3 offset = new Vector3(point.x - position.x, 0, point.z - position.z);
+            Teleport(position + Vector3.ClampMagnitude(offset, _radius.Value));
+        }
+
+        private bool CanTeleport()
+        {
+            if (_canTeleport.Evaluate())
+                return true;
+
+            Debug.Log("Телепорт недоступен, энергия: " + _currentEnergy.Value);
+
+            return false;
+        }
+
+        private void Teleport(Vector3 position)
+        {
             // A kinematic body set only through Rigidbody.position is not synced back to the transform here.
             _rigidbody.position = position;
             _rigidbody.transform.position = position;

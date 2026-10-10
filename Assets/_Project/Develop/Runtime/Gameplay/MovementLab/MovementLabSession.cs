@@ -1,4 +1,5 @@
 using Assets._Project.Develop.Runtime.Gameplay.EntitiesCore;
+using Assets._Project.Develop.Runtime.Gameplay.Features.AI;
 using Assets._Project.Develop.Runtime.Gameplay.Features.EnemiesFeature;
 using UnityEngine;
 
@@ -13,6 +14,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
 
         private readonly EntitiesLifeContext _lifeContext;
         private readonly EntitiesFactory _entitiesFactory;
+        private readonly AIBrainsContext _brainsContext;
+        private readonly BrainsFactory _brainsFactory;
         private readonly MovementLabInput _input;
 
         private Entity _hero;
@@ -20,10 +23,13 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
         private Entity _teleporter;
         private bool _isRunning;
 
-        public MovementLabSession(EntitiesLifeContext lifeContext, EntitiesFactory entitiesFactory, MovementLabInput input)
+        public MovementLabSession(EntitiesLifeContext lifeContext, EntitiesFactory entitiesFactory,
+            AIBrainsContext brainsContext, BrainsFactory brainsFactory, MovementLabInput input)
         {
             _lifeContext = lifeContext;
             _entitiesFactory = entitiesFactory;
+            _brainsContext = brainsContext;
+            _brainsFactory = brainsFactory;
             _input = input;
         }
 
@@ -32,6 +38,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
             _enemy = _entitiesFactory.CreateEnemy(EnemyTypes.Basic, _enemySpawn);
             _hero = _entitiesFactory.CreateHero(_heroSpawn);
             _teleporter = _entitiesFactory.CreateTeleporter(_teleporterSpawn);
+
+            _brainsFactory.CreateManualHeroBrain(_hero);
         }
 
         public void Run() => _isRunning = true;
@@ -41,7 +49,17 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
             if (_isRunning == false)
                 return;
 
-            SetDirection(_hero, _input.ReadDirection());
+            if (_input.IsRandomTeleportBrainPressed())
+            {
+                _brainsFactory.CreateRandomTeleportBrain(_teleporter);
+                Debug.Log("ИИ телепортёра: случайный телепорт");
+            }
+
+            if (_input.IsSmartTeleportBrainPressed())
+            {
+                _brainsFactory.CreateSmartTeleportBrain(_teleporter);
+                Debug.Log("ИИ телепортёра: к цели с наименьшим HP");
+            }
 
             if (_input.IsTeleportPressed())
                 _teleporter.TeleportRequest.Invoke();
@@ -49,6 +67,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
             if (_input.IsDamagePressed())
                 _teleporter.TakeDamageRequest.Invoke(TestDamage);
 
+            _brainsContext.Update(deltaTime);
             _lifeContext.Update(deltaTime);
         }
 
@@ -58,12 +77,6 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
                 return;
 
             _lifeContext.FixedUpdate(deltaTime);
-        }
-
-        private void SetDirection(Entity entity, Vector3 direction)
-        {
-            entity.MoveDirection.Value = direction;
-            entity.RotationDirection.Value = direction;
         }
     }
 }

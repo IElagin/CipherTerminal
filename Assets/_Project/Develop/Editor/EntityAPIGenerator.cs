@@ -79,6 +79,15 @@ namespace Assets._Project.Develop.Editor
                     code.AppendLine();
                     code.AppendLine($"        public Entity Add{name}() => Add{name}(new {GetTypeName(valueType)}());");
                 }
+
+                code.AppendLine();
+                code.AppendLine($"        public bool TryGet{name}(out {GetTypeName(valueType)} @value)");
+                code.AppendLine("        {");
+                code.AppendLine($"            bool result = TryGetComponent(out {typeName} component);");
+                code.AppendLine("            @value = result ? component.Value : default;");
+                code.AppendLine();
+                code.AppendLine("            return result;");
+                code.AppendLine("        }");
             }
 
             code.AppendLine();

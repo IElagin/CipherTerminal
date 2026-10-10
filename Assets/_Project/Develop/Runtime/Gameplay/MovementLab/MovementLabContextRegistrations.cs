@@ -1,5 +1,7 @@
 using Assets._Project.Develop.Runtime.Gameplay.EntitiesCore;
 using Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Mono;
+using Assets._Project.Develop.Runtime.Gameplay.Features.AI;
+using Assets._Project.Develop.Runtime.Gameplay.Features.InputFeature;
 using Assets._Project.Develop.Runtime.UI.Core;
 using Assets._Project.Develop.Runtime.UI.MovementLab;
 using Assets._Project.Develop.Runtime.Utilities.AssetsManagement;
@@ -30,6 +32,10 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
                 monoEntitiesFactory.Dispose();
             });
 
+            builder.Register<AIBrainsContext>(Lifetime.Scoped);
+            builder.Register<DesktopInput>(Lifetime.Scoped).As<IInputService>();
+            builder.Register(CreateBrainsFactory, Lifetime.Scoped);
+
             builder.Register(CreateSession, Lifetime.Scoped);
             builder.Register<SceneNavigator>(Lifetime.Scoped);
             builder.Register(CreateUIRoot, Lifetime.Scoped);
@@ -55,10 +61,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
                 container.Resolve<ConfigsProviderService>());
         }
 
+        private static BrainsFactory CreateBrainsFactory(IObjectResolver container)
+            => new BrainsFactory(container);
+
         private static MovementLabSession CreateSession(IObjectResolver container)
         {
             return new MovementLabSession(container.Resolve<EntitiesLifeContext>(),
-                container.Resolve<EntitiesFactory>(), new MovementLabInput());
+                container.Resolve<EntitiesFactory>(), container.Resolve<AIBrainsContext>(),
+                container.Resolve<BrainsFactory>(), new MovementLabInput());
         }
 
         private static UIRoot CreateUIRoot(IObjectResolver container)

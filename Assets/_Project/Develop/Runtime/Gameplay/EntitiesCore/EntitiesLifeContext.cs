@@ -11,6 +11,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
         public event Action<Entity> Added;
         public event Action<Entity> Released;
 
+        public IReadOnlyList<Entity> Entities => _entities;
+
         public void Add(Entity entity)
         {
             _entities.Add(entity);

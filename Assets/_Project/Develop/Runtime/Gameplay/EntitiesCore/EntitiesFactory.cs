@@ -1,13 +1,18 @@
 using Assets._Project.Develop.Runtime.Configs.Gameplay.Enemies;
 using Assets._Project.Develop.Runtime.Configs.Gameplay.Hero;
 using Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Mono;
+using Assets._Project.Develop.Runtime.Gameplay.Features.AI;
 using Assets._Project.Develop.Runtime.Gameplay.Features.Animation;
 using Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage;
 using Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage;
+using Assets._Project.Develop.Runtime.Gameplay.Features.Attack;
+using Assets._Project.Develop.Runtime.Gameplay.Features.Attack.Shoot;
+using Assets._Project.Develop.Runtime.Gameplay.Features.ContactTakeDamage;
 using Assets._Project.Develop.Runtime.Gameplay.Features.EnemiesFeature;
 using Assets._Project.Develop.Runtime.Gameplay.Features.Energy;
 using Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle;
 using Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature;
+using Assets._Project.Develop.Runtime.Gameplay.Features.Sensors;
 using Assets._Project.Develop.Runtime.Gameplay.Features.Teleport;
 using Assets._Project.Develop.Runtime.Utilities;
 using Assets._Project.Develop.Runtime.Utilities.Conditions;
@@ -21,6 +26,7 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
     public class EntitiesFactory
     {
         private const string TeleporterPrefabPath = "Entities/Teleporter";
+        private const string ProjectilePrefabPath = "Entities/Projectile";
 
         private readonly EntitiesLifeContext _lifeContext;
         private readonly MonoEntitiesFactory _monoEntitiesFactory;
@@ -63,9 +69,45 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             AddHealth(entity, 100, 2);
 
             entity
+                .AddAttackProcessInitialTime(new ReactiveVariable<float>(3))
+                .AddAttackProcessCurrentTime()
+                .AddInAttackProcess()
+                .AddStartAttackRequest()
+                .AddStartAttackEvent()
+                .AddEndAttackEvent()
+                .AddAttackDelayTime(new ReactiveVariable<float>(1))
+                .AddAttackDelayEndEvent()
+                .AddInstantAttackDamage(new ReactiveVariable<float>(50))
+                .AddAttackCanceledEvent()
+                .AddAttackCooldownInitialTime(new ReactiveVariable<float>(2))
+                .AddAttackCooldownCurrentTime()
+                .AddInAttackCooldown();
+
+            ICompositeCondition canStartAttack = new CompositeCondition()
+                .Add(new FuncCondition(() => entity.IsDead.Value == false))
+                .Add(new FuncCondition(() => entity.InAttackProcess.Value == false))
+                .Add(new FuncCondition(() => entity.IsMoving.Value == false))
+                .Add(new FuncCondition(() => entity.InAttackCooldown.Value == false));
+
+            ICompositeCondition mustCancelAttack = new CompositeCondition(LogicOperations.Or)
+                .Add(new FuncCondition(() => entity.IsDead.Value))
+                .Add(new FuncCondition(() => entity.IsMoving.Value));
+
+            entity
+                .AddCanStartAttack(canStartAttack)
+                .AddMustCancelAttack(mustCancelAttack);
+
+            entity
                 .AddSystem(new CharacterControllerMovementSystem())
                 .AddSystem(new TransformRotationSystem())
-                .AddSystem(new CharacterAnimationSystem());
+                .AddSystem(new CharacterAnimationSystem())
+                .AddSystem(new AttackCancelSystem())
+                .AddSystem(new StartAttackSystem())
+                .AddSystem(new AttackProcessTimerSystem())
+                .AddSystem(new AttackDelayEndTriggerSystem())
+                .AddSystem(new InstantShootSystem(this))
+                .AddSystem(new EndAttackSystem())
+                .AddSystem(new AttackCooldownTimerSystem());
 
             AddLifeCycleSystems(entity);
             _monoEntitiesFactory.Create(entity, position, config.PrefabPath);
@@ -90,7 +132,9 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
                 .AddTeleportRadius(new ReactiveVariable<float>(6))
                 .AddTeleportEnergyCost(new ReactiveVariable<float>(25))
                 .AddTeleportRequest()
+                .AddTeleportToPointRequest()
                 .AddTeleportEvent()
+                .AddCurrentTarget()
                 .AddAreaDamage(new ReactiveVariable<float>(30))
                 .AddAreaDamageRadius(new ReactiveVariable<float>(2.5f))
                 .AddAreaDamageMask(UnityLayers.LayerMaskCharacters)
@@ -112,6 +156,49 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
             AddLifeCycleSystems(entity);
             _monoEntitiesFactory.Create(entity, position, TeleporterPrefabPath);
+            _lifeContext.Add(entity);
+
+            return entity;
+        }
+
+        public Entity CreateProjectile(Vector3 position, Vector3 direction, float damage)
+        {
+            Entity entity = CreateMovementEntity(10, 9999);
+
+            entity.MoveDirection.Value = direction;
+            entity.RotationDirection.Value = direction;
+
+            entity
+                .AddIsDead()
+                .AddContactsDetectingMask(UnityLayers.LayerMaskCharacters)
+                .AddContactCollidersBuffer(new Buffer<Collider>(64))
+                .AddContactEntitiesBuffer(new Buffer<Entity>(64))
+                .AddBodyContactDamage(new ReactiveVariable<float>(damage))
+                .AddDeathMask(UnityLayers.LayerMaskCharacters)
+                .AddIsTouchDeathMask();
+
+            ICompositeCondition mustDie = new CompositeCondition()
+                .Add(new FuncCondition(() => entity.IsTouchDeathMask.Value));
+
+            ICompositeCondition mustSelfRelease = new CompositeCondition()
+                .Add(new FuncCondition(() => entity.IsDead.Value));
+
+            entity
+                .AddMustDie(mustDie)
+                .AddMustSelfRelease(mustSelfRelease);
+
+            entity
+                .AddSystem(new RigidbodyMovementSystem())
+                .AddSystem(new RigidbodyRotationSystem())
+                .AddSystem(new BodyContactsDetectingSystem())
+                .AddSystem(new BodyContactsEntitiesFilterSystem(_collidersRegistryService))
+                .AddSystem(new DealDamageOnContactSystem())
+                .AddSystem(new DeathMaskTouchDetectorSystem())
+                .AddSystem(new DeathSystem())
+                .AddSystem(new DisableCollidersOnDeathSystem())
+                .AddSystem(new SelfReleaseSystem(_lifeContext));
+
+            _monoEntitiesFactory.Create(entity, position, ProjectilePrefabPath);
             _lifeContext.Add(entity);
 
             return entity;

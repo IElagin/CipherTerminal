@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 5267809057335653411}
   - component: {fileID: 2057263091040294580}
   - component: {fileID: 3379081564373899242}
+  - component: {fileID: 4334107998260985872}
   m_Layer: 6
   m_Name: Teleporter
   m_TagString: Untagged
@@ -228,6 +229,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneRegistrator
   _zone: {fileID: 1520218072919391006}
+--- !u!114 &4334107998260985872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3871748233153363479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b09aad4c2e4040ce9244fe41be29537, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Project.Develop.Runtime.Gameplay.Common.TransformEntityRegistrator
 --- !u!1 &3986765849616436751
 GameObject:
   m_ObjectHideFlags: 0

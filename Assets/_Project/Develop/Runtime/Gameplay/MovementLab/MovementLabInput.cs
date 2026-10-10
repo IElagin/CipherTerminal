@@ -1,37 +1,16 @@
-using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Assets._Project.Develop.Runtime.Gameplay.MovementLab
 {
+    // Lab test keys; hero control goes through IInputService.
     public class MovementLabInput
     {
-        public Vector3 ReadDirection()
-        {
-            Keyboard keyboard = Keyboard.current;
-
-            if (keyboard == null)
-                return Vector3.zero;
-
-            float horizontal = 0;
-            float vertical = 0;
-
-            if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
-                horizontal++;
-
-            if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
-                horizontal--;
-
-            if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed)
-                vertical++;
-
-            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed)
-                vertical--;
-
-            return new Vector3(horizontal, 0, vertical).normalized;
-        }
-
         public bool IsTeleportPressed() => Keyboard.current != null && Keyboard.current.tKey.wasPressedThisFrame;
 
         public bool IsDamagePressed() => Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+
+        public bool IsRandomTeleportBrainPressed() => Keyboard.current != null && Keyboard.current.digit1Key.wasPressedThisFrame;
+
+        public bool IsSmartTeleportBrainPressed() => Keyboard.current != null && Keyboard.current.digit2Key.wasPressedThisFrame;
     }
 }

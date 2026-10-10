@@ -9,6 +9,7 @@ namespace Assets._Project.Develop.Runtime.Utilities.Layers
         public static readonly int LayerWater = global::UnityEngine.LayerMask.NameToLayer("Water");
         public static readonly int LayerUI = global::UnityEngine.LayerMask.NameToLayer("UI");
         public static readonly int LayerCharacters = global::UnityEngine.LayerMask.NameToLayer("Characters");
+        public static readonly int LayerProjectiles = global::UnityEngine.LayerMask.NameToLayer("Projectiles");
 
         public static readonly int LayerMaskDefault = 1 << LayerDefault;
         public static readonly int LayerMaskTransparentFX = 1 << LayerTransparentFX;
@@ -16,5 +17,6 @@ namespace Assets._Project.Develop.Runtime.Utilities.Layers
         public static readonly int LayerMaskWater = 1 << LayerWater;
         public static readonly int LayerMaskUI = 1 << LayerUI;
         public static readonly int LayerMaskCharacters = 1 << LayerCharacters;
+        public static readonly int LayerMaskProjectiles = 1 << LayerProjectiles;
     }
 }

@@ -15,6 +15,8 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         private bool _isInitialized;
 
+        public bool IsInit => _isInitialized;
+
         public Entity AddComponent<T>(T component) where T : class, IEntityComponent
         {
             _components.Add(typeof(T), component);

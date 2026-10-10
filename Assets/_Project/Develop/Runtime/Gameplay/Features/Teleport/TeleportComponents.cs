@@ -25,6 +25,11 @@ namespace Assets._Project.Develop.Runtime.Gameplay.Features.Teleport
         public ReactiveEvent Value;
     }
 
+    public class TeleportToPointRequest : IEntityComponent
+    {
+        public ReactiveEvent<Vector3> Value;
+    }
+
     public class TeleportEvent : IEntityComponent
     {
         public ReactiveEvent<Vector3> Value;

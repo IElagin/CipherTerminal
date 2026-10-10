@@ -20,6 +20,7 @@ using Assets._Project.Develop.Runtime.Utilities.DataManagment.Serializers;
 using Assets._Project.Develop.Runtime.Utilities.LoadingScreen;
 using Assets._Project.Develop.Runtime.Utilities.Reactive;
 using Assets._Project.Develop.Runtime.Utilities.SceneManagement;
+using Assets._Project.Develop.Runtime.Utilities.Timer;
 
 namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
 {
@@ -47,6 +48,7 @@ namespace Assets._Project.Develop.Runtime.Infrastructure.EntryPoint
             builder.Register(container => CreatePlayerProgress(container, projectToken), Lifetime.Singleton);
             builder.Register<SceneLoaderService>(Lifetime.Singleton);
             builder.Register(container => CreateSceneSwitcher(container, projectToken), Lifetime.Singleton);
+            builder.Register<TimerServiceFactory>(Lifetime.Singleton);
         }
 
         private static StandardLoadingScreen LoadLoadingScreen(IObjectResolver container)

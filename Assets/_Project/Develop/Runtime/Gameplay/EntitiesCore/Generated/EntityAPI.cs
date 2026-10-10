@@ -9,11 +9,27 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
         public Entity AddAnimator(global::UnityEngine.Animator @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Common.AnimatorComponent { Value = @value });
 
+        public bool TryGetAnimator(out global::UnityEngine.Animator @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Common.AnimatorComponent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Common.CharacterControllerComponent CharacterControllerC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Common.CharacterControllerComponent>();
         public global::UnityEngine.CharacterController CharacterController => CharacterControllerC.Value;
 
         public Entity AddCharacterController(global::UnityEngine.CharacterController @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Common.CharacterControllerComponent { Value = @value });
+
+        public bool TryGetCharacterController(out global::UnityEngine.CharacterController @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Common.CharacterControllerComponent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Common.RigidbodyComponent RigidbodyC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Common.RigidbodyComponent>();
         public global::UnityEngine.Rigidbody Rigidbody => RigidbodyC.Value;
@@ -21,17 +37,57 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
         public Entity AddRigidbody(global::UnityEngine.Rigidbody @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Common.RigidbodyComponent { Value = @value });
 
+        public bool TryGetRigidbody(out global::UnityEngine.Rigidbody @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Common.RigidbodyComponent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Common.TransformComponent TransformC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Common.TransformComponent>();
         public global::UnityEngine.Transform Transform => TransformC.Value;
 
         public Entity AddTransform(global::UnityEngine.Transform @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Common.TransformComponent { Value = @value });
 
+        public bool TryGetTransform(out global::UnityEngine.Transform @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Common.TransformComponent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.AI.CurrentTarget CurrentTargetC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AI.CurrentTarget>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity> CurrentTarget => CurrentTargetC.Value;
+
+        public Entity AddCurrentTarget(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AI.CurrentTarget { Value = @value });
+
+        public Entity AddCurrentTarget() => AddCurrentTarget(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity>());
+
+        public bool TryGetCurrentTarget(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AI.CurrentTarget component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.CanApplyDamage CanApplyDamageC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.CanApplyDamage>();
         public global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition CanApplyDamage => CanApplyDamageC.Value;
 
         public Entity AddCanApplyDamage(global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.CanApplyDamage { Value = @value });
+
+        public bool TryGetCanApplyDamage(out global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.CanApplyDamage component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.TakeDamageEvent TakeDamageEventC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.TakeDamageEvent>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::System.Single> TakeDamageEvent => TakeDamageEventC.Value;
@@ -41,6 +97,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddTakeDamageEvent() => AddTakeDamageEvent(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::System.Single>());
 
+        public bool TryGetTakeDamageEvent(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.TakeDamageEvent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.TakeDamageRequest TakeDamageRequestC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.TakeDamageRequest>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::System.Single> TakeDamageRequest => TakeDamageRequestC.Value;
 
@@ -48,6 +112,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.TakeDamageRequest { Value = @value });
 
         public Entity AddTakeDamageRequest() => AddTakeDamageRequest(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::System.Single>());
+
+        public bool TryGetTakeDamageRequest(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.ApplyDamage.TakeDamageRequest component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamage AreaDamageC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamage>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AreaDamage => AreaDamageC.Value;
@@ -57,17 +129,41 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddAreaDamage() => AddAreaDamage(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetAreaDamage(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamage component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageCollidersBuffer AreaDamageCollidersBufferC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageCollidersBuffer>();
         public global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::UnityEngine.Collider> AreaDamageCollidersBuffer => AreaDamageCollidersBufferC.Value;
 
         public Entity AddAreaDamageCollidersBuffer(global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::UnityEngine.Collider> @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageCollidersBuffer { Value = @value });
 
+        public bool TryGetAreaDamageCollidersBuffer(out global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::UnityEngine.Collider> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageCollidersBuffer component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageMask AreaDamageMaskC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageMask>();
         public global::UnityEngine.LayerMask AreaDamageMask => AreaDamageMaskC.Value;
 
         public Entity AddAreaDamageMask(global::UnityEngine.LayerMask @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageMask { Value = @value });
+
+        public bool TryGetAreaDamageMask(out global::UnityEngine.LayerMask @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageMask component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageRadius AreaDamageRadiusC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageRadius>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AreaDamageRadius => AreaDamageRadiusC.Value;
@@ -77,6 +173,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddAreaDamageRadius() => AddAreaDamageRadius(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetAreaDamageRadius(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageRadius component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneCurrentTime AreaDamageZoneCurrentTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneCurrentTime>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AreaDamageZoneCurrentTime => AreaDamageZoneCurrentTimeC.Value;
 
@@ -84,6 +188,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneCurrentTime { Value = @value });
 
         public Entity AddAreaDamageZoneCurrentTime() => AddAreaDamageZoneCurrentTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetAreaDamageZoneCurrentTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneCurrentTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneShowTime AreaDamageZoneShowTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneShowTime>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AreaDamageZoneShowTime => AreaDamageZoneShowTimeC.Value;
@@ -93,11 +205,293 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddAreaDamageZoneShowTime() => AddAreaDamageZoneShowTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetAreaDamageZoneShowTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneShowTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneView AreaDamageZoneViewC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneView>();
         public global::UnityEngine.GameObject AreaDamageZoneView => AreaDamageZoneViewC.Value;
 
         public Entity AddAreaDamageZoneView(global::UnityEngine.GameObject @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneView { Value = @value });
+
+        public bool TryGetAreaDamageZoneView(out global::UnityEngine.GameObject @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.AreaDamage.AreaDamageZoneView component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCanceledEvent AttackCanceledEventC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCanceledEvent>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent AttackCanceledEvent => AttackCanceledEventC.Value;
+
+        public Entity AddAttackCanceledEvent(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCanceledEvent { Value = @value });
+
+        public Entity AddAttackCanceledEvent() => AddAttackCanceledEvent(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent());
+
+        public bool TryGetAttackCanceledEvent(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCanceledEvent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCooldownCurrentTime AttackCooldownCurrentTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCooldownCurrentTime>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AttackCooldownCurrentTime => AttackCooldownCurrentTimeC.Value;
+
+        public Entity AddAttackCooldownCurrentTime(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCooldownCurrentTime { Value = @value });
+
+        public Entity AddAttackCooldownCurrentTime() => AddAttackCooldownCurrentTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetAttackCooldownCurrentTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCooldownCurrentTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCooldownInitialTime AttackCooldownInitialTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCooldownInitialTime>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AttackCooldownInitialTime => AttackCooldownInitialTimeC.Value;
+
+        public Entity AddAttackCooldownInitialTime(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCooldownInitialTime { Value = @value });
+
+        public Entity AddAttackCooldownInitialTime() => AddAttackCooldownInitialTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetAttackCooldownInitialTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackCooldownInitialTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackDelayEndEvent AttackDelayEndEventC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackDelayEndEvent>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent AttackDelayEndEvent => AttackDelayEndEventC.Value;
+
+        public Entity AddAttackDelayEndEvent(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackDelayEndEvent { Value = @value });
+
+        public Entity AddAttackDelayEndEvent() => AddAttackDelayEndEvent(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent());
+
+        public bool TryGetAttackDelayEndEvent(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackDelayEndEvent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackDelayTime AttackDelayTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackDelayTime>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AttackDelayTime => AttackDelayTimeC.Value;
+
+        public Entity AddAttackDelayTime(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackDelayTime { Value = @value });
+
+        public Entity AddAttackDelayTime() => AddAttackDelayTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetAttackDelayTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackDelayTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackProcessCurrentTime AttackProcessCurrentTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackProcessCurrentTime>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AttackProcessCurrentTime => AttackProcessCurrentTimeC.Value;
+
+        public Entity AddAttackProcessCurrentTime(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackProcessCurrentTime { Value = @value });
+
+        public Entity AddAttackProcessCurrentTime() => AddAttackProcessCurrentTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetAttackProcessCurrentTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackProcessCurrentTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackProcessInitialTime AttackProcessInitialTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackProcessInitialTime>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> AttackProcessInitialTime => AttackProcessInitialTimeC.Value;
+
+        public Entity AddAttackProcessInitialTime(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackProcessInitialTime { Value = @value });
+
+        public Entity AddAttackProcessInitialTime() => AddAttackProcessInitialTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetAttackProcessInitialTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.AttackProcessInitialTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.CanStartAttack CanStartAttackC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.CanStartAttack>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition CanStartAttack => CanStartAttackC.Value;
+
+        public Entity AddCanStartAttack(global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.CanStartAttack { Value = @value });
+
+        public bool TryGetCanStartAttack(out global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.CanStartAttack component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.EndAttackEvent EndAttackEventC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.EndAttackEvent>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent EndAttackEvent => EndAttackEventC.Value;
+
+        public Entity AddEndAttackEvent(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.EndAttackEvent { Value = @value });
+
+        public Entity AddEndAttackEvent() => AddEndAttackEvent(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent());
+
+        public bool TryGetEndAttackEvent(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.EndAttackEvent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InAttackCooldown InAttackCooldownC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InAttackCooldown>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> InAttackCooldown => InAttackCooldownC.Value;
+
+        public Entity AddInAttackCooldown(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InAttackCooldown { Value = @value });
+
+        public Entity AddInAttackCooldown() => AddInAttackCooldown(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean>());
+
+        public bool TryGetInAttackCooldown(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InAttackCooldown component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InAttackProcess InAttackProcessC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InAttackProcess>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> InAttackProcess => InAttackProcessC.Value;
+
+        public Entity AddInAttackProcess(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InAttackProcess { Value = @value });
+
+        public Entity AddInAttackProcess() => AddInAttackProcess(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean>());
+
+        public bool TryGetInAttackProcess(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InAttackProcess component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InstantAttackDamage InstantAttackDamageC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InstantAttackDamage>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> InstantAttackDamage => InstantAttackDamageC.Value;
+
+        public Entity AddInstantAttackDamage(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InstantAttackDamage { Value = @value });
+
+        public Entity AddInstantAttackDamage() => AddInstantAttackDamage(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetInstantAttackDamage(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.InstantAttackDamage component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.MustCancelAttack MustCancelAttackC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.MustCancelAttack>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition MustCancelAttack => MustCancelAttackC.Value;
+
+        public Entity AddMustCancelAttack(global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.MustCancelAttack { Value = @value });
+
+        public bool TryGetMustCancelAttack(out global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.MustCancelAttack component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.ShootPoint ShootPointC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.ShootPoint>();
+        public global::UnityEngine.Transform ShootPoint => ShootPointC.Value;
+
+        public Entity AddShootPoint(global::UnityEngine.Transform @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.ShootPoint { Value = @value });
+
+        public bool TryGetShootPoint(out global::UnityEngine.Transform @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.ShootPoint component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.StartAttackEvent StartAttackEventC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.StartAttackEvent>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent StartAttackEvent => StartAttackEventC.Value;
+
+        public Entity AddStartAttackEvent(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.StartAttackEvent { Value = @value });
+
+        public Entity AddStartAttackEvent() => AddStartAttackEvent(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent());
+
+        public bool TryGetStartAttackEvent(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.StartAttackEvent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.StartAttackRequest StartAttackRequestC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.StartAttackRequest>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent StartAttackRequest => StartAttackRequestC.Value;
+
+        public Entity AddStartAttackRequest(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.StartAttackRequest { Value = @value });
+
+        public Entity AddStartAttackRequest() => AddStartAttackRequest(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent());
+
+        public bool TryGetStartAttackRequest(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Attack.StartAttackRequest component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.ContactTakeDamage.BodyContactDamage BodyContactDamageC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.ContactTakeDamage.BodyContactDamage>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> BodyContactDamage => BodyContactDamageC.Value;
+
+        public Entity AddBodyContactDamage(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.ContactTakeDamage.BodyContactDamage { Value = @value });
+
+        public Entity AddBodyContactDamage() => AddBodyContactDamage(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetBodyContactDamage(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.ContactTakeDamage.BodyContactDamage component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.CurrentEnergy CurrentEnergyC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.CurrentEnergy>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> CurrentEnergy => CurrentEnergyC.Value;
@@ -107,6 +501,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddCurrentEnergy() => AddCurrentEnergy(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetCurrentEnergy(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.CurrentEnergy component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationCurrentTime EnergyRegenerationCurrentTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationCurrentTime>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> EnergyRegenerationCurrentTime => EnergyRegenerationCurrentTimeC.Value;
 
@@ -114,6 +516,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationCurrentTime { Value = @value });
 
         public Entity AddEnergyRegenerationCurrentTime() => AddEnergyRegenerationCurrentTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetEnergyRegenerationCurrentTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationCurrentTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationInitialTime EnergyRegenerationInitialTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationInitialTime>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> EnergyRegenerationInitialTime => EnergyRegenerationInitialTimeC.Value;
@@ -123,6 +533,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddEnergyRegenerationInitialTime() => AddEnergyRegenerationInitialTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetEnergyRegenerationInitialTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationInitialTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationPercent EnergyRegenerationPercentC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationPercent>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> EnergyRegenerationPercent => EnergyRegenerationPercentC.Value;
 
@@ -130,6 +548,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationPercent { Value = @value });
 
         public Entity AddEnergyRegenerationPercent() => AddEnergyRegenerationPercent(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetEnergyRegenerationPercent(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.EnergyRegenerationPercent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.MaxEnergy MaxEnergyC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.MaxEnergy>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> MaxEnergy => MaxEnergyC.Value;
@@ -139,6 +565,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddMaxEnergy() => AddMaxEnergy(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetMaxEnergy(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Energy.MaxEnergy component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.CurrentHealth CurrentHealthC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.CurrentHealth>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> CurrentHealth => CurrentHealthC.Value;
 
@@ -146,6 +580,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.CurrentHealth { Value = @value });
 
         public Entity AddCurrentHealth() => AddCurrentHealth(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetCurrentHealth(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.CurrentHealth component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DeathProcessCurrentTime DeathProcessCurrentTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DeathProcessCurrentTime>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> DeathProcessCurrentTime => DeathProcessCurrentTimeC.Value;
@@ -155,6 +597,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddDeathProcessCurrentTime() => AddDeathProcessCurrentTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetDeathProcessCurrentTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DeathProcessCurrentTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DeathProcessInitialTime DeathProcessInitialTimeC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DeathProcessInitialTime>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> DeathProcessInitialTime => DeathProcessInitialTimeC.Value;
 
@@ -162,6 +612,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DeathProcessInitialTime { Value = @value });
 
         public Entity AddDeathProcessInitialTime() => AddDeathProcessInitialTime(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetDeathProcessInitialTime(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DeathProcessInitialTime component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DisableCollidersOnDeath DisableCollidersOnDeathC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DisableCollidersOnDeath>();
         public global::System.Collections.Generic.List<global::UnityEngine.Collider> DisableCollidersOnDeath => DisableCollidersOnDeathC.Value;
@@ -171,6 +629,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddDisableCollidersOnDeath() => AddDisableCollidersOnDeath(new global::System.Collections.Generic.List<global::UnityEngine.Collider>());
 
+        public bool TryGetDisableCollidersOnDeath(out global::System.Collections.Generic.List<global::UnityEngine.Collider> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.DisableCollidersOnDeath component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.InDeathProcess InDeathProcessC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.InDeathProcess>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> InDeathProcess => InDeathProcessC.Value;
 
@@ -178,6 +644,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.InDeathProcess { Value = @value });
 
         public Entity AddInDeathProcess() => AddInDeathProcess(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean>());
+
+        public bool TryGetInDeathProcess(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.InDeathProcess component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.IsDead IsDeadC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.IsDead>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> IsDead => IsDeadC.Value;
@@ -187,6 +661,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddIsDead() => AddIsDead(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean>());
 
+        public bool TryGetIsDead(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.IsDead component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MaxHealth MaxHealthC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MaxHealth>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> MaxHealth => MaxHealthC.Value;
 
@@ -195,11 +677,27 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddMaxHealth() => AddMaxHealth(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetMaxHealth(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MaxHealth component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MustDie MustDieC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MustDie>();
         public global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition MustDie => MustDieC.Value;
 
         public Entity AddMustDie(global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MustDie { Value = @value });
+
+        public bool TryGetMustDie(out global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MustDie component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MustSelfRelease MustSelfReleaseC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MustSelfRelease>();
         public global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition MustSelfRelease => MustSelfReleaseC.Value;
@@ -207,17 +705,41 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
         public Entity AddMustSelfRelease(global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MustSelfRelease { Value = @value });
 
+        public bool TryGetMustSelfRelease(out global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.LifeCycle.MustSelfRelease component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.CanMove CanMoveC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.CanMove>();
         public global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition CanMove => CanMoveC.Value;
 
         public Entity AddCanMove(global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.CanMove { Value = @value });
 
+        public bool TryGetCanMove(out global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.CanMove component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.CanRotate CanRotateC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.CanRotate>();
         public global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition CanRotate => CanRotateC.Value;
 
         public Entity AddCanRotate(global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.CanRotate { Value = @value });
+
+        public bool TryGetCanRotate(out global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.CanRotate component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.IsMoving IsMovingC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.IsMoving>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> IsMoving => IsMovingC.Value;
@@ -227,6 +749,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddIsMoving() => AddIsMoving(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean>());
 
+        public bool TryGetIsMoving(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.IsMoving component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.MoveDirection MoveDirectionC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.MoveDirection>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3> MoveDirection => MoveDirectionC.Value;
 
@@ -234,6 +764,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.MoveDirection { Value = @value });
 
         public Entity AddMoveDirection() => AddMoveDirection(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3>());
+
+        public bool TryGetMoveDirection(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.MoveDirection component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.MoveSpeed MoveSpeedC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.MoveSpeed>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> MoveSpeed => MoveSpeedC.Value;
@@ -243,6 +781,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddMoveSpeed() => AddMoveSpeed(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetMoveSpeed(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.MoveSpeed component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.RotationDirection RotationDirectionC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.RotationDirection>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3> RotationDirection => RotationDirectionC.Value;
 
@@ -250,6 +796,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.RotationDirection { Value = @value });
 
         public Entity AddRotationDirection() => AddRotationDirection(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3>());
+
+        public bool TryGetRotationDirection(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.RotationDirection component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.RotationSpeed RotationSpeedC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.RotationSpeed>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> RotationSpeed => RotationSpeedC.Value;
@@ -259,11 +813,113 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddRotationSpeed() => AddRotationSpeed(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetRotationSpeed(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.MovementFeature.RotationSpeed component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.BodyCollider BodyColliderC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.BodyCollider>();
+        public global::UnityEngine.CapsuleCollider BodyCollider => BodyColliderC.Value;
+
+        public Entity AddBodyCollider(global::UnityEngine.CapsuleCollider @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.BodyCollider { Value = @value });
+
+        public bool TryGetBodyCollider(out global::UnityEngine.CapsuleCollider @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.BodyCollider component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactCollidersBuffer ContactCollidersBufferC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactCollidersBuffer>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::UnityEngine.Collider> ContactCollidersBuffer => ContactCollidersBufferC.Value;
+
+        public Entity AddContactCollidersBuffer(global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::UnityEngine.Collider> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactCollidersBuffer { Value = @value });
+
+        public bool TryGetContactCollidersBuffer(out global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::UnityEngine.Collider> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactCollidersBuffer component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactEntitiesBuffer ContactEntitiesBufferC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactEntitiesBuffer>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity> ContactEntitiesBuffer => ContactEntitiesBufferC.Value;
+
+        public Entity AddContactEntitiesBuffer(global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactEntitiesBuffer { Value = @value });
+
+        public bool TryGetContactEntitiesBuffer(out global::Assets._Project.Develop.Runtime.Utilities.Buffer<global::Assets._Project.Develop.Runtime.Gameplay.EntitiesCore.Entity> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactEntitiesBuffer component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactsDetectingMask ContactsDetectingMaskC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactsDetectingMask>();
+        public global::UnityEngine.LayerMask ContactsDetectingMask => ContactsDetectingMaskC.Value;
+
+        public Entity AddContactsDetectingMask(global::UnityEngine.LayerMask @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactsDetectingMask { Value = @value });
+
+        public bool TryGetContactsDetectingMask(out global::UnityEngine.LayerMask @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.ContactsDetectingMask component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.DeathMask DeathMaskC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.DeathMask>();
+        public global::UnityEngine.LayerMask DeathMask => DeathMaskC.Value;
+
+        public Entity AddDeathMask(global::UnityEngine.LayerMask @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.DeathMask { Value = @value });
+
+        public bool TryGetDeathMask(out global::UnityEngine.LayerMask @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.DeathMask component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.IsTouchDeathMask IsTouchDeathMaskC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.IsTouchDeathMask>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> IsTouchDeathMask => IsTouchDeathMaskC.Value;
+
+        public Entity AddIsTouchDeathMask(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.IsTouchDeathMask { Value = @value });
+
+        public Entity AddIsTouchDeathMask() => AddIsTouchDeathMask(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean>());
+
+        public bool TryGetIsTouchDeathMask(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Boolean> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Sensors.IsTouchDeathMask component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.CanTeleport CanTeleportC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.CanTeleport>();
         public global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition CanTeleport => CanTeleportC.Value;
 
         public Entity AddCanTeleport(global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.CanTeleport { Value = @value });
+
+        public bool TryGetCanTeleport(out global::Assets._Project.Develop.Runtime.Utilities.Conditions.ICompositeCondition @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.CanTeleport component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportCenter TeleportCenterC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportCenter>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3> TeleportCenter => TeleportCenterC.Value;
@@ -273,6 +929,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddTeleportCenter() => AddTeleportCenter(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3>());
 
+        public bool TryGetTeleportCenter(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::UnityEngine.Vector3> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportCenter component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportEnergyCost TeleportEnergyCostC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportEnergyCost>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> TeleportEnergyCost => TeleportEnergyCostC.Value;
 
@@ -280,6 +944,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportEnergyCost { Value = @value });
 
         public Entity AddTeleportEnergyCost() => AddTeleportEnergyCost(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
+
+        public bool TryGetTeleportEnergyCost(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportEnergyCost component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportEvent TeleportEventC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportEvent>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::UnityEngine.Vector3> TeleportEvent => TeleportEventC.Value;
@@ -289,6 +961,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddTeleportEvent() => AddTeleportEvent(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::UnityEngine.Vector3>());
 
+        public bool TryGetTeleportEvent(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::UnityEngine.Vector3> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportEvent component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportRadius TeleportRadiusC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportRadius>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> TeleportRadius => TeleportRadiusC.Value;
 
@@ -297,6 +977,14 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
 
         public Entity AddTeleportRadius() => AddTeleportRadius(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single>());
 
+        public bool TryGetTeleportRadius(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveVariable<global::System.Single> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportRadius component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
         public global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportRequest TeleportRequestC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportRequest>();
         public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent TeleportRequest => TeleportRequestC.Value;
 
@@ -304,6 +992,30 @@ namespace Assets._Project.Develop.Runtime.Gameplay.EntitiesCore
             => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportRequest { Value = @value });
 
         public Entity AddTeleportRequest() => AddTeleportRequest(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent());
+
+        public bool TryGetTeleportRequest(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportRequest component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
+
+        public global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportToPointRequest TeleportToPointRequestC => GetComponent<global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportToPointRequest>();
+        public global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::UnityEngine.Vector3> TeleportToPointRequest => TeleportToPointRequestC.Value;
+
+        public Entity AddTeleportToPointRequest(global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::UnityEngine.Vector3> @value)
+            => AddComponent(new global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportToPointRequest { Value = @value });
+
+        public Entity AddTeleportToPointRequest() => AddTeleportToPointRequest(new global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::UnityEngine.Vector3>());
+
+        public bool TryGetTeleportToPointRequest(out global::Assets._Project.Develop.Runtime.Utilities.Reactive.ReactiveEvent<global::UnityEngine.Vector3> @value)
+        {
+            bool result = TryGetComponent(out global::Assets._Project.Develop.Runtime.Gameplay.Features.Teleport.TeleportToPointRequest component);
+            @value = result ? component.Value : default;
+
+            return result;
+        }
 
     }
 }
